@@ -1,6 +1,7 @@
 package edu.ukma.projectmanagementsystem.web.controller;
 
 import edu.ukma.projectmanagementsystem.service.business.ProjectService;
+import edu.ukma.projectmanagementsystem.service.business.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,4 +11,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ProjectController {
     private final ProjectService projectService;
+    private final TaskService taskService;
 }

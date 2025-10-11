@@ -15,6 +15,6 @@ public class SignUpController {
 
     @PostMapping("/sign-up")
     public UserDto registerUser(@RequestBody UserRegistrationDto registrationDto) {
-        return userService.createUser(registrationDto);
+        return userService.registerUser(registrationDto);
     }
 }
