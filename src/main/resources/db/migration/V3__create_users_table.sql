@@ -1,11 +1,19 @@
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    email VARCHAR(50) NOT NULL,
-    password CHAR(60) NOT NULL,
-    role_id BIGINT NOT NULL,
-    FOREIGN KEY (role_id) REFERENCES role_entity (id),
-    UNIQUE (username),
-    UNIQUE (email)
+CREATE TABLE users
+(
+    id       BIGINT AUTO_INCREMENT NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    name     VARCHAR(255) NOT NULL,
+    email    VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role_id  BIGINT       NOT NULL,
+    CONSTRAINT pk_users PRIMARY KEY (id)
 );
+
+ALTER TABLE users
+    ADD CONSTRAINT uc_users_email UNIQUE (email);
+
+ALTER TABLE users
+    ADD CONSTRAINT uc_users_username UNIQUE (username);
+
+ALTER TABLE users
+    ADD CONSTRAINT FK_USERS_ON_ROLE FOREIGN KEY (role_id) REFERENCES roles (id);

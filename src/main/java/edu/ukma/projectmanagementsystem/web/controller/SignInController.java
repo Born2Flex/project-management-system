@@ -1,11 +1,9 @@
 package edu.ukma.projectmanagementsystem.web.controller;
 
-import edu.ukma.projectmanagementsystem.service.business.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class UserController {
-    private final UserService userService;
+public class SignInController {
 }
