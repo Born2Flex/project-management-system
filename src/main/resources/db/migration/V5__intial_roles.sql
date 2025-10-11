@@ -1,0 +1,2 @@
+INSERT INTO roles (name) VALUES ('PROJECT_MANAGER');
+INSERT INTO roles (name) VALUES ('USER');
