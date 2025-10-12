@@ -6,6 +6,7 @@ import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import ProjectsPage from '@/pages/ProjectsPage';
 import ProjectBoardPage from '@/pages/ProjectBoardPage';
+import TaskDetailPage from '@/pages/TaskDetailPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 
 export const AppRouter = () => {
@@ -36,6 +37,14 @@ export const AppRouter = () => {
           element={
             <ProtectedRoute>
               <ProjectBoardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TASK_DETAIL}
+          element={
+            <ProtectedRoute>
+              <TaskDetailPage />
             </ProtectedRoute>
           }
         />

@@ -12,6 +12,7 @@ export const ROUTES = {
   REGISTER: '/register',
   PROJECTS: '/projects',
   PROJECT_BOARD: '/projects/:id',
+  TASK_DETAIL: '/tasks/:id',
 } as const;
 
 export const QUERY_KEYS = {
@@ -20,5 +21,6 @@ export const QUERY_KEYS = {
   PROJECT: 'project',
   TASKS: 'tasks',
   TASK: 'task',
+  COMMENTS: 'comments',
 } as const;
 

@@ -1,18 +1,24 @@
 import React from 'react';
-import { useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { useProject } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
+import { getStatusDisplayName } from '@/utils/taskHelpers';
 import { TaskStatus } from '@/types/task.types';
 
 export const ProjectBoardPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const projectId = id ? parseInt(id) : 0;
   
   const { project, isLoading: isLoadingProject } = useProject(projectId);
   const { tasks, isLoading: isLoadingTasks } = useTasks(projectId);
+
+  const handleTaskClick = (taskId: number) => {
+    navigate(`/tasks/${taskId}`);
+  };
 
   const tasksByStatus = {
     [TaskStatus.OPEN]: tasks.filter((task) => task.status === TaskStatus.OPEN),
@@ -22,10 +28,10 @@ export const ProjectBoardPage: React.FC = () => {
   };
 
   const statusColumns = [
-    { status: TaskStatus.OPEN, title: 'To Do', color: 'bg-gray-100' },
-    { status: TaskStatus.IN_PROGRESS, title: 'In Progress', color: 'bg-blue-100' },
-    { status: TaskStatus.UNDER_REVIEW, title: 'Under Review', color: 'bg-yellow-100' },
-    { status: TaskStatus.COMPLETED, title: 'Completed', color: 'bg-green-100' },
+    { status: TaskStatus.OPEN, title: getStatusDisplayName(TaskStatus.OPEN), color: 'bg-gray-100' },
+    { status: TaskStatus.IN_PROGRESS, title: getStatusDisplayName(TaskStatus.IN_PROGRESS), color: 'bg-blue-100' },
+    { status: TaskStatus.UNDER_REVIEW, title: getStatusDisplayName(TaskStatus.UNDER_REVIEW), color: 'bg-yellow-100' },
+    { status: TaskStatus.COMPLETED, title: getStatusDisplayName(TaskStatus.COMPLETED), color: 'bg-green-100' },
   ];
 
   if (isLoadingProject || isLoadingTasks) {
@@ -77,7 +83,7 @@ export const ProjectBoardPage: React.FC = () => {
                   <p className="text-sm text-gray-500 text-center py-4">No tasks</p>
                 ) : (
                   tasksByStatus[column.status].map((task) => (
-                    <Card key={task.id} padding="sm" hover>
+                    <Card key={task.id} padding="sm" hover onClick={() => handleTaskClick(task.id)}>
                       <h3 className="font-medium text-gray-900 mb-1">{task.title}</h3>
                       <p className="text-sm text-gray-600 line-clamp-2 mb-2">
                         {task.description}
