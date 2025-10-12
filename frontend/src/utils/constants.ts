@@ -1,6 +1,8 @@
 export const API_BASE_URL = 'http://localhost:8080/project-management';
 export const API_TIMEOUT = 30000;
 
+export const USE_MOCK_API = true;
+
 export const TOKEN_KEY = 'jira_clone_token';
 export const USER_KEY = 'jira_clone_user';
 

@@ -1,7 +1,9 @@
 import { apiClient } from './client';
 import { type Project, type CreateProjectRequest, type UpdateProjectRequest } from '@/types/project.types';
+import { USE_MOCK_API } from '@/utils/constants';
+import { projectsApiMock } from './mock';
 
-export const projectsApi = {
+const projectsApiReal = {
   getAll: async (): Promise<Project[]> => {
     const response = await apiClient.get<Project[]>('/projects');
     return response.data;
@@ -26,6 +28,8 @@ export const projectsApi = {
     await apiClient.delete(`/projects/${id}`);
   },
 };
+
+export const projectsApi = USE_MOCK_API ? projectsApiMock : projectsApiReal;
 
 export default projectsApi;
 

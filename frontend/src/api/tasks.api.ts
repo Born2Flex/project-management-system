@@ -1,7 +1,9 @@
 import { apiClient } from './client';
 import { type Task, type CreateTaskRequest, type UpdateTaskRequest } from '@/types/task.types';
+import { USE_MOCK_API } from '@/utils/constants';
+import { tasksApiMock } from './mock';
 
-export const tasksApi = {
+const tasksApiReal = {
   getAll: async (): Promise<Task[]> => {
     const response = await apiClient.get<Task[]>('/tasks');
     return response.data;
@@ -31,6 +33,8 @@ export const tasksApi = {
     await apiClient.delete(`/tasks/${id}`);
   },
 };
+
+export const tasksApi = USE_MOCK_API ? tasksApiMock : tasksApiReal;
 
 export default tasksApi;
 
