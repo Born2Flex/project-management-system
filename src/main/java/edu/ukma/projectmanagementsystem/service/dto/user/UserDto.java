@@ -1,4 +1,4 @@
-package edu.ukma.projectmanagementsystem.service.dto;
+package edu.ukma.projectmanagementsystem.service.dto.user;
 
 import edu.ukma.projectmanagementsystem.domain.enumerated.UserRole;
 import lombok.Data;
@@ -6,12 +6,14 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class UserRegistrationDto {
+public class UserDto {
+    private Long id;
+
     private String username;
 
-    private String email;
+    private String name;
 
-    private String password;
+    private String email;
 
     private UserRole role;
 }
