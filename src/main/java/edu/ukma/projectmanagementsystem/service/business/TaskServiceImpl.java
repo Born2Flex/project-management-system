@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Slf4j
 @Service
@@ -110,12 +109,12 @@ class TaskServiceImpl implements TaskService {
 
     private TaskEntity findTaskEntityById(Long id) {
         return taskRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Task not found with ID: " + id));
+                .orElseThrow(() -> new NoSuchEntityException("Task not found with ID: " + id));
     }
 
     private UserEntity findUserEntityById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + id));
+                .orElseThrow(() -> new NoSuchEntityException("User not found with ID: " + id));
     }
 
     private void validateProjectExists(Long projectId) {
@@ -126,7 +125,7 @@ class TaskServiceImpl implements TaskService {
 
     private ProjectEntity findProjectByIdOrElseThrow(Long projectId) {
         return projectRepository.findById(projectId)
-                .orElseThrow(() -> new NoSuchElementException("Project not found with ID: " + projectId));
+                .orElseThrow(() -> new NoSuchEntityException("Project not found with ID: " + projectId));
     }
 
     private TaskEntity findTaskByIdOrElseThrow(Long taskId) {

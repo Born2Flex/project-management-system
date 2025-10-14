@@ -31,7 +31,7 @@ class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(UserRegistrationDto registrationDto) {
         log.info("Attempting to create new user");
-        validateForDuplicateEmail(registrationDto.getEmail());
+        validateForDuplicateEmail(-1L, registrationDto.getEmail());
         UserEntity userEntity = mapper.mapWithEncodedPassword(registrationDto, passwordEncoder);
         RoleEntity roleEntity = getRoleOrElseThrow(registrationDto.getRole());
         userEntity.setRole(roleEntity);
@@ -43,8 +43,8 @@ class UserServiceImpl implements UserService {
     @Override
     public UserDto updateUser(Long id, UserUpdateDto updateDto) {
         log.info("Attempting to update user with ID: {}", id);
-        validateForDuplicateEmail(updateDto.getEmail());
-        validateForDuplicateUsername(updateDto.getEmail());
+        validateForDuplicateEmail(id, updateDto.getEmail());
+        validateForDuplicateUsername(id, updateDto.getEmail());
         UserEntity userEntity = getUserByIdOrElseThrow(id);
         UserEntity updatedEntity = mapper.updateEntity(userEntity, updateDto);
         UserDto updatedUser = mapper.toDto(updatedEntity);
@@ -88,13 +88,17 @@ class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NoSuchEntityException("Role not found"));
     }
 
-    private void validateForDuplicateEmail(String email) {
-        userRepository.findByEmail(email).ifPresent(this::throwEmailDuplicateException);
+    private void validateForDuplicateEmail(Long id, String email) {
+        userRepository.findByEmail(email)
+                .filter(user -> !user.getId().equals(id))
+                .ifPresent(this::throwEmailDuplicateException);
     }
 
 
-    private void validateForDuplicateUsername(String email) {
-        userRepository.findByUsername(email).ifPresent(this::throwUsernameDuplicateException);
+    private void validateForDuplicateUsername(Long id, String email) {
+        userRepository.findByUsername(email)
+                .filter(user -> !user.getId().equals(id))
+                .ifPresent(this::throwUsernameDuplicateException);
     }
 
     private void throwEmailDuplicateException(UserEntity user) {

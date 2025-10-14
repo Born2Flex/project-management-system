@@ -10,13 +10,12 @@ import edu.ukma.projectmanagementsystem.service.dto.project.ProjectUpdateDto;
 import edu.ukma.projectmanagementsystem.service.dto.user.UserDto;
 import edu.ukma.projectmanagementsystem.service.mapper.ProjectMapper;
 import edu.ukma.projectmanagementsystem.service.mapper.UserMapper;
+import edu.ukma.projectmanagementsystem.web.exception.NoSuchEntityException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Slf4j
 @Service
@@ -49,14 +48,14 @@ class ProjectServiceImpl implements ProjectService {
         log.info("Fetching project with ID: {}", id);
         return projectRepository.findById(id)
                 .map(projectMapper::toDto)
-                .orElseThrow(() -> new NoSuchElementException("Project not found with ID: " + id));
+                .orElseThrow(() -> new NoSuchEntityException("Project not found with ID: " + id));
     }
 
     @Override
     public ProjectDto updateProject(Long id, ProjectUpdateDto updateDto) {
         log.info("Attempting to update project with ID: {}", id);
         ProjectEntity existingEntity = projectRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Project not found with ID: " + id));
+                .orElseThrow(() -> new NoSuchEntityException("Project not found with ID: " + id));
         projectMapper.updateEntity(existingEntity, updateDto);
         ProjectEntity updatedEntity = projectRepository.save(existingEntity);
         log.info("Successfully updated project with ID: {}", id);
@@ -67,7 +66,7 @@ class ProjectServiceImpl implements ProjectService {
     public void deleteProject(Long id) {
         log.info("Attempting to delete project with ID: {}", id);
         if (!projectRepository.existsById(id)) {
-            throw new NoSuchElementException("Project not found with ID: " + id);
+            throw new NoSuchEntityException("Project not found with ID: " + id);
         }
         projectRepository.deleteById(id);
         log.info("Successfully deleted project with ID: {}", id);
@@ -101,11 +100,11 @@ class ProjectServiceImpl implements ProjectService {
 
     private ProjectEntity findProjectEntityById(Long id) {
         return projectRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Project not found with ID: " + id));
+                .orElseThrow(() -> new NoSuchEntityException("Project not found with ID: " + id));
     }
 
     private UserEntity findUserEntityById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + id));
+                .orElseThrow(() -> new NoSuchEntityException("User not found with ID: " + id));
     }
 }
