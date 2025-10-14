@@ -30,9 +30,9 @@ public class SecurityConfig {
         return http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(createCorsConfSource()))
                 .authorizeHttpRequests(req -> req
-//                        .requestMatchers(permitAllUris).permitAll()
-                        .requestMatchers("/**").permitAll()
-//                        .anyRequest().authenticated()
+                        .requestMatchers(permitAllUris).permitAll()
+//                        .requestMatchers("/**").permitAll()
+                        .anyRequest().authenticated()
                 ).exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

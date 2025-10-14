@@ -7,15 +7,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/sign-up")
 @RequiredArgsConstructor
 public class SignUpController {
     private final UserService service;
 
-    @PostMapping("/sign-up")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto registerUser(@RequestBody UserRegistrationDto registrationDto) {
         return service.createUser(registrationDto);
