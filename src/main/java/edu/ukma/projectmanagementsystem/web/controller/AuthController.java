@@ -1,5 +1,6 @@
 package edu.ukma.projectmanagementsystem.web.controller;
 
+import edu.ukma.projectmanagementsystem.config.AuthenticationFacade;
 import edu.ukma.projectmanagementsystem.service.business.UserService;
 import edu.ukma.projectmanagementsystem.service.dto.user.UserDto;
 import edu.ukma.projectmanagementsystem.service.dto.user.UserRegistrationDto;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,6 +36,7 @@ public class AuthController {
 
     private final UserService userService;
     private final AuthService authService;
+    private final AuthenticationFacade authenticationFacade;
 
     @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.CREATED)
@@ -64,7 +67,10 @@ public class AuthController {
     @DeleteMapping("/logout")
     @Operation(summary = "Logout current user")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(@AuthenticationPrincipal Authentication authentication) {
-        authService.logout(authentication);
+    public void logout() {
+        Authentication authentication = authenticationFacade.getAuthentication();
+        if (authentication != null) {
+            authService.logout(authentication);
+        }
     }
 }
