@@ -11,6 +11,7 @@ import edu.ukma.projectmanagementsystem.service.security.dto.RefreshTokenRequest
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -43,5 +44,10 @@ public class AuthService {
         UserEntity user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
         String token = jwtService.generateToken(new TokenData(user.getId(), UserRole.valueOf(user.getRole().getName())));
         return new JwtResponseDto(userId, token, requestRefreshToken);
+    }
+
+    public void logout(Authentication authentication) {
+        TokenData tokenData = (TokenData) authentication.getPrincipal();
+        refreshTokenService.deleteByUserId(tokenData.getId());
     }
 }

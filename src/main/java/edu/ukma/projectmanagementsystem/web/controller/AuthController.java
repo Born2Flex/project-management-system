@@ -15,7 +15,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,5 +59,12 @@ public class AuthController {
             content = {@Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")})
     public JwtResponseDto refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
         return authService.refreshToken(request);
+    }
+
+    @DeleteMapping("/logout")
+    @Operation(summary = "Logout current user")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(@AuthenticationPrincipal Authentication authentication) {
+        authService.logout(authentication);
     }
 }
