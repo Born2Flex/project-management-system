@@ -24,8 +24,7 @@ export const authApi = {
   },
 
   logout: async (): Promise<void> => {
-    // No backend logout endpoint yet - just clear local storage
-    return Promise.resolve();
+    await apiClient.delete('/auth/logout');
   },
 };
 
