@@ -123,6 +123,8 @@ public class ProjectController {
         taskService.deleteTask(projectId, taskId);
     }
 
+    // TODO Check all methods for a validity
+
     @PatchMapping("/{projectId}/tasks/{taskId}/assign")
     @Operation(summary = "Assign a task to a user")
     public TaskDto assignTask(@PathVariable Long projectId, @PathVariable Long taskId, @RequestBody @Valid AssignTaskRequest request) {
