@@ -1,0 +1,15 @@
+package edu.ukma.projectmanagementsystem.service.dto.project;
+
+import edu.ukma.projectmanagementsystem.domain.enumerated.ProjectStatus;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class ProjectCreateDto {
+    String name;
+
+    String description;
+
+    ProjectStatus status; // TODO Maybe we should initialize it with default value or remove these field
+}
