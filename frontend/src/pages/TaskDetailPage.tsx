@@ -1,0 +1,280 @@
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router';
+import { useTask } from '@/hooks/useTasks';
+import { useComments } from '@/hooks/useComments';
+import { useTasks } from '@/hooks/useTasks';
+import Layout from '@/components/layout/Layout';
+import Card from '@/components/common/Card';
+import Button from '@/components/common/Button';
+import { formatDate, formatRelativeTime } from '@/utils/formatters';
+import { getStatusDisplayName } from '@/utils/taskHelpers';
+import { TaskStatus, TaskPriority } from '@/types/task.types';
+
+export const TaskDetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const taskId = id ? parseInt(id) : 0;
+
+  const { task, isLoading: isLoadingTask } = useTask(taskId);
+  const { comments, isLoading: isLoadingComments, createComment, isCreating } = useComments(taskId);
+  const { updateTask } = useTasks();
+
+  const [newComment, setNewComment] = useState('');
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
+
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      createComment({ content: newComment, taskId });
+      setNewComment('');
+    }
+  };
+
+  const handleStatusChange = (newStatus: TaskStatus) => {
+    if (task) {
+      updateTask({ id: task.id, data: { status: newStatus } });
+      setIsEditingStatus(false);
+    }
+  };
+
+  const getPriorityColor = (priority: TaskPriority) => {
+    switch (priority) {
+      case TaskPriority.CRITICAL:
+        return 'bg-red-100 text-red-800 border-red-200';
+      case TaskPriority.HIGH:
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case TaskPriority.MEDIUM:
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case TaskPriority.LOW:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusColor = (status: TaskStatus) => {
+    switch (status) {
+      case TaskStatus.OPEN:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case TaskStatus.IN_PROGRESS:
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case TaskStatus.UNDER_REVIEW:
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case TaskStatus.COMPLETED:
+        return 'bg-green-100 text-green-800 border-green-200';
+    }
+  };
+
+  if (isLoadingTask) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading task...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!task) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">Task not found</p>
+          <Button onClick={() => navigate(-1)}>Go Back</Button>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="max-w-5xl mx-auto">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <div className="flex items-start justify-between mb-4">
+                <h1 className="text-3xl font-bold text-gray-900">{task.title}</h1>
+                <div className="flex gap-2">
+                  <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getPriorityColor(task.priority)}`}>
+                    {task.priority}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate(`/projects/${task.project.id}`)}
+                className="text-sm text-blue-600 hover:text-blue-700 hover:underline mb-4"
+              >
+                {task.project.name}
+              </button>
+
+              <div className="mb-6">
+                <h2 className="text-sm font-semibold text-gray-700 mb-2">Description</h2>
+                <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+              </div>
+            </Card>
+
+            <Card>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Comments ({comments.length})
+              </h2>
+
+              <div className="mb-6">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  rows={3}
+                />
+                <div className="flex justify-end mt-2">
+                  <Button
+                    onClick={handleAddComment}
+                    disabled={!newComment.trim()}
+                    isLoading={isCreating}
+                    size="sm"
+                  >
+                    Add Comment
+                  </Button>
+                </div>
+              </div>
+
+              {isLoadingComments ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
+                </div>
+              ) : comments.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">No comments yet</p>
+              ) : (
+                <div className="space-y-4">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="border-b border-gray-200 pb-4 last:border-0">
+                      <div className="flex items-start gap-3">
+                        {/* Avatar */}
+                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                          {comment.author.name.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-gray-900">{comment.author.name}</span>
+                            <span className="text-sm text-gray-500">
+                              {formatRelativeTime(comment.createdAt)}
+                            </span>
+                            {comment.updatedAt && (
+                              <span className="text-xs text-gray-400">(edited)</span>
+                            )}
+                          </div>
+                          <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <Card>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Status</h3>
+              {isEditingStatus ? (
+                <div className="space-y-2">
+                  {Object.values(TaskStatus).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => handleStatusChange(status)}
+                      className={`w-full px-3 py-2 text-sm font-medium rounded-lg border text-left transition-colors ${
+                        task.status === status
+                          ? getStatusColor(status)
+                          : 'bg-white hover:bg-gray-50 border-gray-300'
+                      }`}
+                    >
+                      {getStatusDisplayName(status)}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setIsEditingStatus(false)}
+                    className="w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsEditingStatus(true)}
+                  className={`w-full px-3 py-2 text-sm font-medium rounded-lg border ${getStatusColor(task.status)} hover:opacity-80 transition-opacity`}
+                >
+                  {getStatusDisplayName(task.status)}
+                </button>
+              )}
+            </Card>
+
+            <Card>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Details</h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Assignee</p>
+                  {task.assignee ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                        {task.assignee.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{task.assignee.name}</p>
+                        <p className="text-xs text-gray-500">{task.assignee.email}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">Unassigned</p>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Created</p>
+                  <p className="text-sm text-gray-900">{formatDate(task.createdAt)}</p>
+                  <p className="text-xs text-gray-500">{formatRelativeTime(task.createdAt)}</p>
+                </div>
+
+                {task.dueDateTime && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Due Date</p>
+                    <p className="text-sm text-gray-900">{formatDate(task.dueDateTime)}</p>
+                    <p className="text-xs text-gray-500">{formatRelativeTime(task.dueDateTime)}</p>
+                  </div>
+                )}
+
+                {task.updatedAt && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Last Updated</p>
+                    <p className="text-sm text-gray-900">{formatDate(task.updatedAt)}</p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Priority</p>
+                  <span className={`inline-block px-2 py-1 text-xs font-medium rounded border ${getPriorityColor(task.priority)}`}>
+                    {task.priority}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default TaskDetailPage;
+
