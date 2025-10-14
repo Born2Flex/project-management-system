@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { useAuthStore } from '@/stores/authStore';
 import { authApi } from '@/api/auth.api';
+import { usersApi } from '@/api/users.api';
 import { type LoginRequest, type RegisterRequest, type RefreshTokenRequest, UserRole } from '@/types/auth.types';
 import { ROUTES } from '@/utils/constants';
 
@@ -14,26 +15,26 @@ interface ApiError extends Error {
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const { login: loginStore, logout: logoutStore } = useAuthStore();
+  const { setAuth, clearAuth, isAuthenticated } = useAuthStore();
 
   const loginMutation = useMutation({
-    mutationFn: (credentials: LoginRequest) => {
-      console.log('Attempting login with:', credentials.email);
-      return authApi.login(credentials);
+    mutationFn: async (credentials: LoginRequest) => {
+      const loginResponse = await authApi.login(credentials);
+      
+      setAuth(loginResponse.accessToken, loginResponse.refreshToken, {
+        id: loginResponse.userId,
+        username: '',
+        name: '',
+        email: credentials.email,
+        role: UserRole.USER,
+      });
+      
+      const user = await usersApi.getById(loginResponse.userId);
+      
+      return { ...loginResponse, user };
     },
-    onSuccess: (data, variables) => {
-      console.log('Login successful, received data:', data);
-      // Create user object from response
-      const user = {
-        id: data.userId,
-        username: '', // Will be fetched if needed
-        name: '', // Will be fetched if needed
-        email: variables.email,
-        role: UserRole.USER, // Default role
-      };
-      console.log('Storing user in auth store:', user);
-      loginStore(data.accessToken, data.refreshToken, user);
-      console.log('Navigating to projects page');
+    onSuccess: (data) => {
+      setAuth(data.accessToken, data.refreshToken, data.user);
       navigate(ROUTES.PROJECTS);
     },
     onError: (error: ApiError) => {
@@ -53,8 +54,6 @@ export const useAuth = () => {
     },
     onSuccess: (data, variables) => {
       console.log('Registration successful, received data:', data);
-      // After registration, automatically log in
-      // Note: Backend doesn't return tokens on registration, so we need to log in
       console.log('Auto-logging in after registration...');
       loginMutation.mutate({
         email: variables.email,
@@ -62,7 +61,6 @@ export const useAuth = () => {
       });
     },
     onError: (error: ApiError) => {
-      console.error('Registration failed with error:', error);
       console.error('Error details:', {
         message: error?.message,
         response: error?.response?.data,
@@ -72,28 +70,34 @@ export const useAuth = () => {
   });
 
   const refreshTokenMutation = useMutation({
-    mutationFn: (request: RefreshTokenRequest) => authApi.refresh(request),
-    onSuccess: (data) => {
-      // Update tokens in store
-      const user = {
-        id: data.userId,
+    mutationFn: async (request: RefreshTokenRequest) => {
+      const refreshResponse = await authApi.refresh(request);
+      
+      setAuth(refreshResponse.accessToken, refreshResponse.refreshToken, {
+        id: refreshResponse.userId,
         username: '',
         name: '',
         email: '',
         role: UserRole.USER,
-      };
-      loginStore(data.accessToken, data.refreshToken, user);
+      });
+      
+      const user = await usersApi.getById(refreshResponse.userId);
+      
+      return { ...refreshResponse, user };
+    },
+    onSuccess: (data) => {
+      setAuth(data.accessToken, data.refreshToken, data.user);
     },
   });
 
   const logoutMutation = useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
-      logoutStore();
+      clearAuth();
       navigate(ROUTES.LOGIN);
     },
     onError: () => {
-      logoutStore();
+      clearAuth();
       navigate(ROUTES.LOGIN);
     },
   });
@@ -108,6 +112,19 @@ export const useAuth = () => {
     isRefreshing: refreshTokenMutation.isPending,
     loginError: loginMutation.error,
     registerError: registerMutation.error,
+    isAuthenticated,
+  };
+};
+
+export const useCurrentUser = () => {
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
+  return { 
+    user, 
+    isLoading: false, 
+    error: null,
+    isAuthenticated,
   };
 };
 

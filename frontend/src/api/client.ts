@@ -1,5 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { API_BASE_URL, API_TIMEOUT, TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '@/utils/constants';
+import { API_BASE_URL, API_TIMEOUT } from '@/utils/constants';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -11,9 +11,17 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const authStorage = localStorage.getItem('auth-storage');
+    if (authStorage) {
+      try {
+        const authData = JSON.parse(authStorage);
+        const token = authData?.state?.token;
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch (error) {
+        console.error('Failed to parse auth storage:', error);
+      }
     }
     return config;
   },
@@ -38,17 +46,13 @@ apiClient.interceptors.response.use(
         
         if (url.includes('/refresh')) {
           console.error('Refresh token expired or invalid, redirecting to login');
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(REFRESH_TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
+          localStorage.removeItem('auth-storage');
           window.location.replace('/login');
           return Promise.reject(error);
         }
         
         console.error('Unauthorized access, redirecting to login');
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem('auth-storage');
         window.location.replace('/login');
       }
       

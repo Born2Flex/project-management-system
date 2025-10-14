@@ -1,11 +1,10 @@
 import React from 'react';
-import { useAuthStore } from '@/stores/authStore';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, useCurrentUser } from '@/hooks/useAuth';
 import { useUiStore } from '@/stores/uiStore';
 import Button from '@/components/common/Button';
 
 export const Header: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user } = useCurrentUser();
   const { logout } = useAuth();
   const { toggleSidebar } = useUiStore();
 
