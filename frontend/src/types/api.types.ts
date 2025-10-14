@@ -5,8 +5,9 @@ export interface ApiResponse<T> {
 }
 
 export interface ApiError {
+  timestamp: string;
+  status: string;
   message: string;
-  status: number;
   errors?: Record<string, string[]>;
 }
 

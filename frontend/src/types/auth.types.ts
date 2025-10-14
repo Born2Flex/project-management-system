@@ -3,12 +3,12 @@ export interface User {
   username: string;
   name: string;
   email: string;
-  role: Role;
+  role: UserRole;
 }
 
-export interface Role {
-  id: number;
-  name: string;
+export enum UserRole {
+  USER = 'USER',
+  PROJECT_MANAGER = 'PROJECT_MANAGER',
 }
 
 export interface LoginRequest {
@@ -17,8 +17,9 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  token: string;
-  user: User;
+  userId: number;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface RegisterRequest {
@@ -26,11 +27,24 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  role?: UserRole;
 }
 
 export interface RegisterResponse {
-  token: string;
-  user: User;
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  role: UserRole;
 }
 
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface UserUpdateRequest {
+  username?: string;
+  name?: string;
+  email?: string;
+  role?: UserRole;
+}

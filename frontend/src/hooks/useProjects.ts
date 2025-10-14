@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectsApi } from '@/api/projects.api';
-import { type CreateProjectRequest, type UpdateProjectRequest } from '@/types/project.types';
+import { type CreateProjectRequest, type UpdateProjectRequest, type AddDeveloperRequest } from '@/types/project.types';
 import { QUERY_KEYS } from '@/utils/constants';
 
 export const useProjects = () => {
@@ -67,6 +67,46 @@ export const useProject = (id: number) => {
     project,
     isLoading,
     error,
+  };
+};
+
+export const useDevelopers = (projectId: number) => {
+  const {
+    data: developers = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: [QUERY_KEYS.PROJECT_DEVELOPERS, projectId],
+    queryFn: () => projectsApi.getDevelopers(projectId),
+    enabled: !!projectId,
+  });
+
+  const queryClient = useQueryClient();
+
+  const addDeveloperMutation = useMutation({
+    mutationFn: (request: AddDeveloperRequest) => projectsApi.addDeveloper(projectId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PROJECT_DEVELOPERS, projectId] });
+    },
+  });
+
+  const removeDeveloperMutation = useMutation({
+    mutationFn: (developerId: number) => projectsApi.removeDeveloper(projectId, developerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PROJECT_DEVELOPERS, projectId] });
+    },
+  });
+
+  return {
+    developers,
+    isLoading,
+    error,
+    refetch,
+    addDeveloper: addDeveloperMutation.mutate,
+    removeDeveloper: removeDeveloperMutation.mutate,
+    isAdding: addDeveloperMutation.isPending,
+    isRemoving: removeDeveloperMutation.isPending,
   };
 };
 

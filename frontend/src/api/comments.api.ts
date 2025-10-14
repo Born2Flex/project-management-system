@@ -1,9 +1,7 @@
 import { apiClient } from './client';
 import { type Comment, type CreateCommentRequest, type UpdateCommentRequest } from '@/types/comment.types';
-import { USE_MOCK_API } from '@/utils/constants';
-import { commentsApiMock } from './mock';
 
-const commentsApiReal = {
+export const commentsApi = {
   getByTaskId: async (taskId: number): Promise<Comment[]> => {
     const response = await apiClient.get<Comment[]>(`/tasks/${taskId}/comments`);
     return response.data;
@@ -23,8 +21,6 @@ const commentsApiReal = {
     await apiClient.delete(`/comments/${id}`);
   },
 };
-
-export const commentsApi = USE_MOCK_API ? commentsApiMock : commentsApiReal;
 
 export default commentsApi;
 

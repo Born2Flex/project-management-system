@@ -22,3 +22,7 @@ export interface UpdateProjectRequest {
   status?: ProjectStatus;
 }
 
+export interface AddDeveloperRequest {
+  developerId: number;
+}
+

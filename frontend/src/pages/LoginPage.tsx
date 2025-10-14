@@ -42,9 +42,11 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (validate()) {
       login({ email, password });
     }
+    return false;
   };
 
   return (
@@ -78,9 +80,18 @@ export const LoginPage: React.FC = () => {
 
           {loginError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">
-                Invalid email or password. Please try again.
+              <p className="text-sm text-red-600 font-medium mb-1">Login Failed</p>
+              <p className="text-xs text-red-500">
+                {loginError instanceof Error
+                  ? loginError.message
+                  : 'Invalid email or password. Please try again.'}
               </p>
+              <details className="mt-2">
+                <summary className="text-xs text-red-400 cursor-pointer">Show details</summary>
+                <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto max-h-32">
+                  {JSON.stringify(loginError, null, 2)}
+                </pre>
+              </details>
             </div>
           )}
 

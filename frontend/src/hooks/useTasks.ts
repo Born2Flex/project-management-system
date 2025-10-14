@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tasksApi } from '@/api/tasks.api';
-import { type CreateTaskRequest, type UpdateTaskRequest } from '@/types/task.types';
+import { type CreateTaskRequest, type UpdateTaskRequest, type AssignTaskRequest } from '@/types/task.types';
 import { QUERY_KEYS } from '@/utils/constants';
 
-export const useTasks = (projectId?: number) => {
+export const useTasks = (projectId: number) => {
   const queryClient = useQueryClient();
 
   const {
@@ -12,30 +12,46 @@ export const useTasks = (projectId?: number) => {
     error,
     refetch,
   } = useQuery({
-    queryKey: projectId ? [QUERY_KEYS.TASKS, projectId] : [QUERY_KEYS.TASKS],
-    queryFn: () => (projectId ? tasksApi.getByProjectId(projectId) : tasksApi.getAll()),
+    queryKey: [QUERY_KEYS.TASKS, projectId],
+    queryFn: () => tasksApi.getByProjectId(projectId),
+    enabled: !!projectId,
   });
 
   const createMutation = useMutation({
-    mutationFn: (taskData: CreateTaskRequest) => tasksApi.create(taskData),
+    mutationFn: (taskData: CreateTaskRequest) => tasksApi.create(projectId, taskData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, projectId] });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateTaskRequest }) =>
-      tasksApi.update(id, data),
+    mutationFn: ({ taskId, data }: { taskId: number; data: UpdateTaskRequest }) =>
+      tasksApi.update(projectId, taskId, data),
     onSuccess: (updatedTask) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASK, updatedTask.id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, projectId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASK, projectId, updatedTask.id] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => tasksApi.delete(id),
+    mutationFn: (taskId: number) => tasksApi.delete(projectId, taskId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, projectId] });
+    },
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: ({ taskId, request }: { taskId: number; request: AssignTaskRequest }) =>
+      tasksApi.assign(projectId, taskId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, projectId] });
+    },
+  });
+
+  const unassignMutation = useMutation({
+    mutationFn: (taskId: number) => tasksApi.unassign(projectId, taskId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, projectId] });
     },
   });
 
@@ -47,21 +63,25 @@ export const useTasks = (projectId?: number) => {
     createTask: createMutation.mutate,
     updateTask: updateMutation.mutate,
     deleteTask: deleteMutation.mutate,
+    assignTask: assignMutation.mutate,
+    unassignTask: unassignMutation.mutate,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isAssigning: assignMutation.isPending,
+    isUnassigning: unassignMutation.isPending,
   };
 };
 
-export const useTask = (id: number) => {
+export const useTask = (projectId: number, taskId: number) => {
   const {
     data: task,
     isLoading,
     error,
   } = useQuery({
-    queryKey: [QUERY_KEYS.TASK, id],
-    queryFn: () => tasksApi.getById(id),
-    enabled: !!id,
+    queryKey: [QUERY_KEYS.TASK, projectId, taskId],
+    queryFn: () => tasksApi.getById(projectId, taskId),
+    enabled: !!projectId && !!taskId,
   });
 
   return {

@@ -1,9 +1,8 @@
 import { apiClient } from './client';
-import { type Project, type CreateProjectRequest, type UpdateProjectRequest } from '@/types/project.types';
-import { USE_MOCK_API } from '@/utils/constants';
-import { projectsApiMock } from './mock';
+import { type Project, type CreateProjectRequest, type UpdateProjectRequest, type AddDeveloperRequest } from '@/types/project.types';
+import type { User } from '@/types/auth.types';
 
-const projectsApiReal = {
+export const projectsApi = {
   getAll: async (): Promise<Project[]> => {
     const response = await apiClient.get<Project[]>('/projects');
     return response.data;
@@ -27,9 +26,20 @@ const projectsApiReal = {
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/projects/${id}`);
   },
-};
 
-export const projectsApi = USE_MOCK_API ? projectsApiMock : projectsApiReal;
+  getDevelopers: async (projectId: number): Promise<User[]> => {
+    const response = await apiClient.get<User[]>(`/projects/${projectId}/developers`);
+    return response.data;
+  },
+
+  addDeveloper: async (projectId: number, request: AddDeveloperRequest): Promise<void> => {
+    await apiClient.post(`/projects/${projectId}/developers`, request);
+  },
+
+  removeDeveloper: async (projectId: number, developerId: number): Promise<void> => {
+    await apiClient.delete(`/projects/${projectId}/developers/${developerId}`);
+  },
+};
 
 export default projectsApi;
 

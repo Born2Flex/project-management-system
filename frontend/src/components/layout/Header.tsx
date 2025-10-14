@@ -1,18 +1,16 @@
 import React from 'react';
-import { useNavigate } from 'react-router';
 import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useUiStore } from '@/stores/uiStore';
-import { ROUTES } from '@/utils/constants';
 import Button from '@/components/common/Button';
 
 export const Header: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const { logout } = useAuth();
   const { toggleSidebar } = useUiStore();
 
   const handleLogout = () => {
     logout();
-    navigate(ROUTES.LOGIN);
   };
 
   return (
@@ -32,10 +30,12 @@ export const Header: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-            <p className="text-xs text-gray-500">{user?.email}</p>
-          </div>
+          {user && (
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900">{user.name || user.username || 'User'}</p>
+              <p className="text-xs text-gray-500">{user.email}</p>
+            </div>
+          )}
           <Button variant="ghost" size="sm" onClick={handleLogout}>
             Logout
           </Button>

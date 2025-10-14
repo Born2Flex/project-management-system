@@ -6,9 +6,9 @@ spring:
     name: project-management-system
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/project-management-system?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:admin}
+    url: jdbc:mysql://project-management-system-db.crg40yqi8dve.eu-central-1.rds.amazonaws.com:3306/project-management-system?createDatabaseIfNotExist=true
+    username: admin
+    password: cnG1u$DLR1v%W3
   jpa:
     show-sql: true
     hibernate:

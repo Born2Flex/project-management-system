@@ -1,40 +1,39 @@
 import { apiClient } from './client';
-import { type Task, type CreateTaskRequest, type UpdateTaskRequest } from '@/types/task.types';
-import { USE_MOCK_API } from '@/utils/constants';
-import { tasksApiMock } from './mock';
+import { type Task, type CreateTaskRequest, type UpdateTaskRequest, type AssignTaskRequest } from '@/types/task.types';
 
-const tasksApiReal = {
-  getAll: async (): Promise<Task[]> => {
-    const response = await apiClient.get<Task[]>('/tasks');
-    return response.data;
-  },
-
+export const tasksApi = {
   getByProjectId: async (projectId: number): Promise<Task[]> => {
     const response = await apiClient.get<Task[]>(`/projects/${projectId}/tasks`);
     return response.data;
   },
 
-  getById: async (id: number): Promise<Task> => {
-    const response = await apiClient.get<Task>(`/tasks/${id}`);
+  getById: async (projectId: number, taskId: number): Promise<Task> => {
+    const response = await apiClient.get<Task>(`/projects/${projectId}/tasks/${taskId}`);
     return response.data;
   },
 
-  create: async (taskData: CreateTaskRequest): Promise<Task> => {
-    const response = await apiClient.post<Task>('/tasks', taskData);
+  create: async (projectId: number, taskData: CreateTaskRequest): Promise<Task> => {
+    const response = await apiClient.post<Task>(`/projects/${projectId}/tasks`, taskData);
     return response.data;
   },
 
-  update: async (id: number, taskData: UpdateTaskRequest): Promise<Task> => {
-    const response = await apiClient.put<Task>(`/tasks/${id}`, taskData);
+  update: async (projectId: number, taskId: number, taskData: UpdateTaskRequest): Promise<Task> => {
+    const response = await apiClient.put<Task>(`/projects/${projectId}/tasks/${taskId}`, taskData);
     return response.data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`/tasks/${id}`);
+  delete: async (projectId: number, taskId: number): Promise<void> => {
+    await apiClient.delete(`/projects/${projectId}/tasks/${taskId}`);
+  },
+
+  assign: async (projectId: number, taskId: number, request: AssignTaskRequest): Promise<void> => {
+    await apiClient.patch(`/projects/${projectId}/tasks/${taskId}/assign`, request);
+  },
+
+  unassign: async (projectId: number, taskId: number): Promise<void> => {
+    await apiClient.patch(`/projects/${projectId}/tasks/${taskId}/unassign`);
   },
 };
-
-export const tasksApi = USE_MOCK_API ? tasksApiMock : tasksApiReal;
 
 export default tasksApi;
 

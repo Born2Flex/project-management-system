@@ -34,8 +34,7 @@ export interface CreateTaskRequest {
   status: TaskStatus;
   priority: TaskPriority;
   dueDateTime?: string;
-  projectId: number;
-  assigneeId?: number;
+  createdAt?: string;
 }
 
 export interface UpdateTaskRequest {
@@ -44,6 +43,9 @@ export interface UpdateTaskRequest {
   status?: TaskStatus;
   priority?: TaskPriority;
   dueDateTime?: string;
-  assigneeId?: number;
+}
+
+export interface AssignTaskRequest {
+  assigneeId: number;
 }
 
