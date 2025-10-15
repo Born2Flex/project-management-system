@@ -44,9 +44,16 @@ class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectDto> findAllProjects() {
         log.info("Fetching all projects");
-        return projectRepository.findAll().stream()
-                .map(projectMapper::toDto)
-                .toList();
+        List<ProjectEntity> projectEntities = projectRepository.findAll();
+        return projectMapper.toDto(projectEntities);
+    }
+
+    @Override
+    public List<ProjectDto> findAllProjectsForCurrentUser() {
+        log.info("Fetching all projects for current user");
+        TokenData tokenData = (TokenData) authenticationFacade.getAuthentication().getPrincipal();
+        List<ProjectEntity> projectEntities = projectRepository.findAllProjectsForCurrentUser(tokenData.getId());
+        return projectMapper.toDto(projectEntities);
     }
 
     @Override

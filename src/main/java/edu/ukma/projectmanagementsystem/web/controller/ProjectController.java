@@ -1,10 +1,10 @@
 package edu.ukma.projectmanagementsystem.web.controller;
 
 import edu.ukma.projectmanagementsystem.service.business.ProjectService;
-import edu.ukma.projectmanagementsystem.service.business.TaskService;
 import edu.ukma.projectmanagementsystem.service.business.TaskCommentService;
-import edu.ukma.projectmanagementsystem.service.dto.AssignTaskRequest;
+import edu.ukma.projectmanagementsystem.service.business.TaskService;
 import edu.ukma.projectmanagementsystem.service.dto.AddDeveloperRequest;
+import edu.ukma.projectmanagementsystem.service.dto.AssignTaskRequest;
 import edu.ukma.projectmanagementsystem.service.dto.project.ProjectCreateDto;
 import edu.ukma.projectmanagementsystem.service.dto.project.ProjectDto;
 import edu.ukma.projectmanagementsystem.service.dto.project.ProjectUpdateDto;
@@ -61,6 +61,13 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProjectDto.class))))
     public List<ProjectDto> getAllProjects() {
         return projectService.findAllProjects();
+    }
+
+    @GetMapping("/my")
+    @Operation(summary = "Get all projects for current user")
+    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProjectDto.class))))
+    public List<ProjectDto> getAllProjectsForCurrentUser() {
+        return projectService.findAllProjectsForCurrentUser();
     }
 
     @GetMapping("/{projectId}")
@@ -130,8 +137,6 @@ public class ProjectController {
         taskService.deleteTask(projectId, taskId);
     }
 
-    // TODO Check all methods for a validity
-
     @PatchMapping("/{projectId}/tasks/{taskId}/assign")
     @Operation(summary = "Assign a task to a user")
     public TaskDto assignTask(@PathVariable Long projectId, @PathVariable Long taskId, @RequestBody @Valid AssignTaskRequest request) {
@@ -142,7 +147,7 @@ public class ProjectController {
     @PatchMapping("/{projectId}/tasks/{taskId}/unassign")
     @Operation(summary = "Unassign a user from a task")
     public TaskDto unassignTask(@PathVariable Long projectId, @PathVariable Long taskId) {
-        projectService.findProjectById(projectId); // Ensures project exists
+        projectService.findProjectById(projectId);
         return taskService.unassignTaskFromUser(taskId);
     }
 

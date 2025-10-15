@@ -12,6 +12,8 @@ public interface ProjectService {
 
     List<ProjectDto> findAllProjects();
 
+    List<ProjectDto> findAllProjectsForCurrentUser();
+
     ProjectDto findProjectById(Long id);
 
     ProjectDto updateProject(Long id, ProjectUpdateDto updateDto);
