@@ -56,6 +56,9 @@ class TaskServiceImpl implements TaskService {
         log.info("Fetching task with ID: {}", taskId);
         validateProjectExists(projectId);
         TaskEntity taskEntity = findTaskByIdOrElseThrow(taskId);
+        if (!taskEntity.getProject().getId().equals(projectId)) {
+            throw new NoSuchEntityException("Task not found in project with ID: " + projectId);
+        }
         return taskMapper.toDto(taskEntity);
     }
 

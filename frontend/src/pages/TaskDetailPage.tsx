@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useTask } from '@/hooks/useTasks';
 import { useComments } from '@/hooks/useComments';
 import { useTasks } from '@/hooks/useTasks';
+import { useProject } from '@/hooks/useProjects';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
@@ -11,27 +12,29 @@ import { getStatusDisplayName } from '@/utils/taskHelpers';
 import { TaskStatus, TaskPriority } from '@/types/task.types';
 
 export const TaskDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { projectId: projectIdParam, id } = useParams<{ projectId: string; id: string }>();
   const navigate = useNavigate();
+  const projectId = projectIdParam ? parseInt(projectIdParam) : 0;
   const taskId = id ? parseInt(id) : 0;
 
-  const { task, isLoading: isLoadingTask } = useTask(taskId);
-  const { comments, isLoading: isLoadingComments, createComment, isCreating } = useComments(taskId);
-  const { updateTask } = useTasks();
+  const { task, isLoading: isLoadingTask } = useTask(projectId, taskId);
+  const { project, isLoading: isLoadingProject } = useProject(projectId);
+  const { comments, isLoading: isLoadingComments, createComment, isCreating } = useComments(projectId, taskId);
+  const { updateTask } = useTasks(projectId);
 
   const [newComment, setNewComment] = useState('');
   const [isEditingStatus, setIsEditingStatus] = useState(false);
 
   const handleAddComment = () => {
     if (newComment.trim()) {
-      createComment({ content: newComment, taskId });
+      createComment({ text: newComment, taskId });
       setNewComment('');
     }
   };
 
   const handleStatusChange = (newStatus: TaskStatus) => {
     if (task) {
-      updateTask({ id: task.id, data: { status: newStatus } });
+      updateTask({ taskId: task.id, data: { status: newStatus } });
       setIsEditingStatus(false);
     }
   };
@@ -62,7 +65,7 @@ export const TaskDetailPage: React.FC = () => {
     }
   };
 
-  if (isLoadingTask) {
+  if (isLoadingTask || isLoadingProject) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -112,10 +115,10 @@ export const TaskDetailPage: React.FC = () => {
               </div>
 
               <button
-                onClick={() => navigate(`/projects/${task.project.id}`)}
+                onClick={() => navigate(`/projects/${projectId}`)}
                 className="text-sm text-blue-600 hover:text-blue-700 hover:underline mb-4"
               >
-                {task.project.name}
+                {project?.name || 'Loading...'}
               </button>
 
               <div className="mb-6">
@@ -175,7 +178,7 @@ export const TaskDetailPage: React.FC = () => {
                               <span className="text-xs text-gray-400">(edited)</span>
                             )}
                           </div>
-                          <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                          <p className="text-gray-700 whitespace-pre-wrap">{comment.text}</p>
                         </div>
                       </div>
                     </div>

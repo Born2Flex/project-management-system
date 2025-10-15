@@ -2,7 +2,7 @@ import { type User } from './auth.types';
 
 export interface Comment {
   id: number;
-  content: string;
+  text: string;
   createdAt: string;
   updatedAt?: string;
   author: User;
@@ -10,11 +10,11 @@ export interface Comment {
 }
 
 export interface CreateCommentRequest {
-  content: string;
+  text: string;
   taskId: number;
 }
 
 export interface UpdateCommentRequest {
-  content: string;
+  text: string;
 }
 

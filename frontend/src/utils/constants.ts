@@ -7,7 +7,7 @@ export const ROUTES = {
   REGISTER: '/register',
   PROJECTS: '/projects',
   PROJECT_BOARD: '/projects/:id',
-  TASK_DETAIL: '/tasks/:id',
+  TASK_DETAIL: '/projects/:projectId/tasks/:id',
 } as const;
 
 export const QUERY_KEYS = {

@@ -3,7 +3,7 @@ import { commentsApi } from '@/api/comments.api';
 import { type CreateCommentRequest, type UpdateCommentRequest } from '@/types/comment.types';
 import { QUERY_KEYS } from '@/utils/constants';
 
-export const useComments = (taskId: number) => {
+export const useComments = (projectId: number, taskId: number) => {
   const queryClient = useQueryClient();
 
   const {
@@ -12,30 +12,30 @@ export const useComments = (taskId: number) => {
     error,
     refetch,
   } = useQuery({
-    queryKey: [QUERY_KEYS.COMMENTS, taskId],
-    queryFn: () => commentsApi.getByTaskId(taskId),
-    enabled: !!taskId,
+    queryKey: [QUERY_KEYS.COMMENTS, projectId, taskId],
+    queryFn: () => commentsApi.getByTaskId(projectId, taskId),
+    enabled: !!projectId && !!taskId,
   });
 
   const createMutation = useMutation({
-    mutationFn: (commentData: CreateCommentRequest) => commentsApi.create(commentData),
+    mutationFn: (commentData: CreateCommentRequest) => commentsApi.create(projectId, taskId, commentData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENTS, taskId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENTS, projectId, taskId] });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateCommentRequest }) =>
-      commentsApi.update(id, data),
+      commentsApi.update(projectId, taskId, id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENTS, taskId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENTS, projectId, taskId] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => commentsApi.delete(id),
+    mutationFn: (id: number) => commentsApi.delete(projectId, taskId, id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENTS, taskId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENTS, projectId, taskId] });
     },
   });
 

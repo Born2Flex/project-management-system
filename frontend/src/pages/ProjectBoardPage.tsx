@@ -27,7 +27,7 @@ export const ProjectBoardPage: React.FC = () => {
   const isPM = user?.role === UserRole.PROJECT_MANAGER;
 
   const handleTaskClick = (taskId: number) => {
-    navigate(`/tasks/${taskId}`);
+    navigate(`/projects/${projectId}/tasks/${taskId}`);
   };
 
   const handleAddDeveloper = async (userId: number) => {

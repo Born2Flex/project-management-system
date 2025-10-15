@@ -2,23 +2,23 @@ import { apiClient } from './client';
 import { type Comment, type CreateCommentRequest, type UpdateCommentRequest } from '@/types/comment.types';
 
 export const commentsApi = {
-  getByTaskId: async (taskId: number): Promise<Comment[]> => {
-    const response = await apiClient.get<Comment[]>(`/tasks/${taskId}/comments`);
+  getByTaskId: async (projectId: number, taskId: number): Promise<Comment[]> => {
+    const response = await apiClient.get<Comment[]>(`/projects/${projectId}/tasks/${taskId}/comments`);
     return response.data;
   },
 
-  create: async (commentData: CreateCommentRequest): Promise<Comment> => {
-    const response = await apiClient.post<Comment>('/comments', commentData);
+  create: async (projectId: number, taskId: number, commentData: CreateCommentRequest): Promise<Comment> => {
+    const response = await apiClient.post<Comment>(`/projects/${projectId}/tasks/${taskId}/comments`, commentData);
     return response.data;
   },
 
-  update: async (id: number, commentData: UpdateCommentRequest): Promise<Comment> => {
-    const response = await apiClient.put<Comment>(`/comments/${id}`, commentData);
+  update: async (projectId: number, taskId: number, id: number, commentData: UpdateCommentRequest): Promise<Comment> => {
+    const response = await apiClient.put<Comment>(`/projects/${projectId}/tasks/${taskId}/comments/${id}`, commentData);
     return response.data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`/comments/${id}`);
+  delete: async (projectId: number, taskId: number, id: number): Promise<void> => {
+    await apiClient.delete(`/projects/${projectId}/tasks/${taskId}/comments/${id}`);
   },
 };
 

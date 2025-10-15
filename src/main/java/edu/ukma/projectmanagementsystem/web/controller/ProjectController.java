@@ -2,6 +2,7 @@ package edu.ukma.projectmanagementsystem.web.controller;
 
 import edu.ukma.projectmanagementsystem.service.business.ProjectService;
 import edu.ukma.projectmanagementsystem.service.business.TaskService;
+import edu.ukma.projectmanagementsystem.service.business.TaskCommentService;
 import edu.ukma.projectmanagementsystem.service.dto.AssignTaskRequest;
 import edu.ukma.projectmanagementsystem.service.dto.AddDeveloperRequest;
 import edu.ukma.projectmanagementsystem.service.dto.project.ProjectCreateDto;
@@ -10,6 +11,9 @@ import edu.ukma.projectmanagementsystem.service.dto.project.ProjectUpdateDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskCreateDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskUpdateDto;
+import edu.ukma.projectmanagementsystem.service.dto.taskComment.TaskCommentCreateDto;
+import edu.ukma.projectmanagementsystem.service.dto.taskComment.TaskCommentDto;
+import edu.ukma.projectmanagementsystem.service.dto.taskComment.TaskCommentUpdateDto;
 import edu.ukma.projectmanagementsystem.service.dto.user.UserDto;
 import edu.ukma.projectmanagementsystem.web.handler.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +45,7 @@ import java.util.List;
 public class ProjectController {
     private final ProjectService projectService;
     private final TaskService taskService;
+    private final TaskCommentService taskCommentService;
 
     @PostMapping
     @Operation(summary = "Create a new project")
@@ -160,5 +165,46 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeDeveloperFromProject(@PathVariable Long projectId, @PathVariable Long developerId) {
         projectService.removeDeveloperFromProject(projectId, developerId);
+    }
+
+    @GetMapping("/{projectId}/tasks/{taskId}/comments")
+    @Operation(summary = "Get all comments for a specific task")
+    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = TaskCommentDto.class))))
+    @ApiResponse(responseCode = "404", description = "Project or Task not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public List<TaskCommentDto> getTaskComments(@PathVariable Long projectId, @PathVariable Long taskId) {
+        taskService.findTaskById(projectId, taskId);
+        return taskCommentService.findCommentsByTaskId(taskId);
+    }
+
+    @PostMapping("/{projectId}/tasks/{taskId}/comments")
+    @Operation(summary = "Create a new comment for a specific task")
+    @ApiResponse(responseCode = "201", description = "Comment created successfully", content = @Content(schema = @Schema(implementation = TaskCommentDto.class)))
+    @ApiResponse(responseCode = "404", description = "Project or Task not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ResponseStatus(HttpStatus.CREATED)
+    public TaskCommentDto createTaskComment(@PathVariable Long projectId, @PathVariable Long taskId, @RequestBody @Valid TaskCommentCreateDto commentDto) {
+        taskService.findTaskById(projectId, taskId);
+        commentDto.setTask(taskId);
+        return taskCommentService.createTaskComment(commentDto);
+    }
+
+    @PutMapping("/{projectId}/tasks/{taskId}/comments/{commentId}")
+    @Operation(summary = "Update a specific comment")
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = TaskCommentDto.class)))
+    @ApiResponse(responseCode = "404", description = "Project, Task, or Comment not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public TaskCommentDto updateTaskComment(@PathVariable Long projectId, @PathVariable Long taskId, @PathVariable Long commentId, @RequestBody @Valid TaskCommentUpdateDto commentDto) {
+        taskService.findTaskById(projectId, taskId);
+        return taskCommentService.updateTaskComment(commentId, commentDto);
+    }
+
+    @DeleteMapping("/{projectId}/tasks/{taskId}/comments/{commentId}")
+    @Operation(summary = "Delete a specific comment")
+    @ApiResponse(responseCode = "204", description = "Comment deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Project, Task, or Comment not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTaskComment(@PathVariable Long projectId, @PathVariable Long taskId, @PathVariable Long commentId) {
+        taskService.findTaskById(projectId, taskId);
+        taskCommentService.deleteTaskComment(commentId);
     }
 }
