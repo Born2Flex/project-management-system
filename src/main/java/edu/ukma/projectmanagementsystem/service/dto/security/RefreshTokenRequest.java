@@ -1,4 +1,4 @@
-package edu.ukma.projectmanagementsystem.service.security.dto;
+package edu.ukma.projectmanagementsystem.service.dto.security;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

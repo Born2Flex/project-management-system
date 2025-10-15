@@ -21,6 +21,8 @@ public interface UserMapper {
     @Mapping(source = "role.name", target = "role")
     UserDto toDto(UserEntity entity);
 
+    List<UserDto> toDto(List<UserEntity> entities);
+
     default UserEntity mapWithEncodedPassword(UserRegistrationDto registrationDto, PasswordEncoder passwordEncoder) {
         UserEntity userEntity = toEntity(registrationDto);
         userEntity.setPassword(passwordEncoder.encode(registrationDto.getPassword()));

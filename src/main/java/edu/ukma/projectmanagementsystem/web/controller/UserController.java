@@ -67,6 +67,14 @@ public class UserController {
         return service.findUserByEmail(email);
     }
 
+    @GetMapping("/search")
+    @Operation(summary = "Get users with matching email or username")
+    @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = UserDto.class),
+            mediaType = "application/json")})
+    public List<UserDto> getUserByEmailOrUsername(@RequestParam String searchTerm) {
+        return service.findUserByEmailOrUsername(searchTerm);
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user by id")
     @ApiResponse(responseCode = "204")

@@ -1,13 +1,12 @@
 package edu.ukma.projectmanagementsystem.web.controller;
 
-import edu.ukma.projectmanagementsystem.config.AuthenticationFacade;
 import edu.ukma.projectmanagementsystem.service.business.UserService;
 import edu.ukma.projectmanagementsystem.service.dto.user.UserDto;
 import edu.ukma.projectmanagementsystem.service.dto.user.UserRegistrationDto;
 import edu.ukma.projectmanagementsystem.service.security.AuthService;
-import edu.ukma.projectmanagementsystem.service.security.dto.JwtResponseDto;
-import edu.ukma.projectmanagementsystem.service.security.dto.LoginDto;
-import edu.ukma.projectmanagementsystem.service.security.dto.RefreshTokenRequest;
+import edu.ukma.projectmanagementsystem.service.dto.security.JwtResponseDto;
+import edu.ukma.projectmanagementsystem.service.dto.security.LoginDto;
+import edu.ukma.projectmanagementsystem.service.dto.security.RefreshTokenRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,10 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +31,6 @@ public class AuthController {
 
     private final UserService userService;
     private final AuthService authService;
-    private final AuthenticationFacade authenticationFacade;
 
     @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.CREATED)
@@ -46,20 +40,16 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     @Operation(summary = "Logic user using username and password")
-    @ApiResponse(responseCode = "200",
-            content = {@Content(schema = @Schema(implementation = JwtResponseDto.class), mediaType = "application/json")})
-    @ApiResponse(responseCode = "401",
-            content = {@Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")})
-    public JwtResponseDto authorize(@RequestBody LoginDto dto) {
+    @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = JwtResponseDto.class), mediaType = "application/json")})
+    @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")})
+    public JwtResponseDto authenticate(@RequestBody LoginDto dto) {
         return authService.authenticate(dto);
     }
 
     @PostMapping("/refresh")
     @Operation(summary = "Refresh authentication token using refresh token.")
-    @ApiResponse(responseCode = "200",
-            content = {@Content(schema = @Schema(implementation = JwtResponseDto.class), mediaType = "application/json")})
-    @ApiResponse(responseCode = "403",
-            content = {@Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")})
+    @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = JwtResponseDto.class), mediaType = "application/json")})
+    @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")})
     public JwtResponseDto refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
         return authService.refreshToken(request);
     }
@@ -68,9 +58,6 @@ public class AuthController {
     @Operation(summary = "Logout current user")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout() {
-        Authentication authentication = authenticationFacade.getAuthentication();
-        if (authentication != null) {
-            authService.logout(authentication);
-        }
+        authService.logoutCurrentUser();
     }
 }
