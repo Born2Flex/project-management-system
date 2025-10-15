@@ -1,5 +1,7 @@
 package edu.ukma.projectmanagementsystem.service.business;
 
+import edu.ukma.projectmanagementsystem.config.AuthenticationFacade;
+import edu.ukma.projectmanagementsystem.config.TokenData;
 import edu.ukma.projectmanagementsystem.domain.entity.ProjectEntity;
 import edu.ukma.projectmanagementsystem.domain.entity.UserEntity;
 import edu.ukma.projectmanagementsystem.domain.repository.ProjectRepository;
@@ -25,11 +27,15 @@ class ProjectServiceImpl implements ProjectService {
     private final ProjectMapper projectMapper;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final AuthenticationFacade authenticationFacade;
 
     @Override
     public ProjectDto createProject(ProjectCreateDto createDto) {
         log.info("Attempting to create a new project with name: {}", createDto.getName());
         ProjectEntity entity = projectMapper.toEntity(createDto);
+        TokenData tokenData = (TokenData) authenticationFacade.getAuthentication().getPrincipal();
+        UserEntity currentUser = findUserEntityById(tokenData.getId());
+        entity.getDevelopers().add(currentUser);
         ProjectEntity savedEntity = projectRepository.save(entity);
         log.info("Successfully created project with ID: {}", savedEntity.getId());
         return projectMapper.toDto(savedEntity);
