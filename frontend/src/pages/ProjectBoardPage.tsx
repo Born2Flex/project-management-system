@@ -109,12 +109,12 @@ export const ProjectBoardPage: React.FC = () => {
           
           {developers.length > 0 && (
             <div className="mt-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-gray-700">Project Team</h3>
-                {isPM && (
-                  <span className="text-xs text-gray-500">Click × to remove</span>
-                )}
-              </div>
+               <div className="flex items-center justify-between mb-3">
+                 <h3 className="text-sm font-medium text-gray-700">Project Team</h3>
+                 {isPM && developers.some(d => d.id !== user?.id) && (
+                   <span className="text-xs text-gray-500">Click × to remove</span>
+                 )}
+               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {developers.map((developer) => (
                   <div
@@ -132,18 +132,18 @@ export const ProjectBoardPage: React.FC = () => {
                         <p className="text-xs text-gray-500">{developer.email}</p>
                       </div>
                     </div>
-                    {isPM && (
-                      <button
-                        onClick={() => handleRemoveDeveloper(developer.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                        disabled={isRemoving}
-                        title="Remove developer"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
+                     {isPM && developer.id !== user?.id && (
+                       <button
+                         onClick={() => handleRemoveDeveloper(developer.id)}
+                         className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                         disabled={isRemoving}
+                         title="Remove developer"
+                       >
+                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                         </svg>
+                       </button>
+                     )}
                   </div>
                 ))}
               </div>
