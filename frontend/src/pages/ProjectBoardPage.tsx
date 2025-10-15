@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { useProject } from '@/hooks/useProjects';
+import { useProject, useDevelopers } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
+import { useCurrentUser } from '@/hooks/useAuth';
+import { UserRole } from '@/types/auth.types';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
+import CreateTaskModal from '@/components/features/CreateTaskModal';
+import AssignUserModal from '@/components/features/AssignUserModal';
 import { getStatusDisplayName } from '@/utils/taskHelpers';
 import { TaskStatus } from '@/types/task.types';
 
@@ -15,9 +19,32 @@ export const ProjectBoardPage: React.FC = () => {
   
   const { project, isLoading: isLoadingProject } = useProject(projectId);
   const { tasks, isLoading: isLoadingTasks } = useTasks(projectId);
+  const { developers, addDeveloper, removeDeveloper, isAdding, isRemoving } = useDevelopers(projectId);
+  const { user } = useCurrentUser();
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const [isAssignUserModalOpen, setIsAssignUserModalOpen] = useState(false);
+  
+  const isPM = user?.role === UserRole.PROJECT_MANAGER;
 
   const handleTaskClick = (taskId: number) => {
     navigate(`/tasks/${taskId}`);
+  };
+
+  const handleAddDeveloper = async (userId: number) => {
+    try {
+      await addDeveloper({ developerId: userId });
+      setIsAssignUserModalOpen(false);
+    } catch (error) {
+      console.error('Failed to add developer:', error);
+    }
+  };
+
+  const handleRemoveDeveloper = async (developerId: number) => {
+    try {
+      await removeDeveloper(developerId);
+    } catch (error) {
+      console.error('Failed to remove developer:', error);
+    }
   };
 
   const tasksByStatus = {
@@ -63,11 +90,65 @@ export const ProjectBoardPage: React.FC = () => {
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-            <Button>
-              Create Task
-            </Button>
+            <div className="flex gap-3">
+              {isPM && (
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setIsAssignUserModalOpen(true)}
+                  disabled={isAdding}
+                >
+                  Add Developer
+                </Button>
+              )}
+              <Button onClick={() => setIsCreateTaskModalOpen(true)}>
+                Create Task
+              </Button>
+            </div>
           </div>
           <p className="text-gray-600">{project.description}</p>
+          
+          {developers.length > 0 && (
+            <div className="mt-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-700">Project Team</h3>
+                {isPM && (
+                  <span className="text-xs text-gray-500">Click × to remove</span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {developers.map((developer) => (
+                  <div
+                    key={developer.id}
+                    className="flex items-center justify-between bg-white px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-blue-600">
+                          {developer.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{developer.name}</p>
+                        <p className="text-xs text-gray-500">{developer.email}</p>
+                      </div>
+                    </div>
+                    {isPM && (
+                      <button
+                        onClick={() => handleRemoveDeveloper(developer.id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                        disabled={isRemoving}
+                        title="Remove developer"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -116,6 +197,20 @@ export const ProjectBoardPage: React.FC = () => {
           ))}
         </div>
       </div>
+
+      <CreateTaskModal
+        isOpen={isCreateTaskModalOpen}
+        onClose={() => setIsCreateTaskModalOpen(false)}
+        projectId={projectId}
+      />
+      
+      <AssignUserModal
+        isOpen={isAssignUserModalOpen}
+        onClose={() => setIsAssignUserModalOpen(false)}
+        projectId={projectId}
+        onAssign={handleAddDeveloper}
+        isAssigning={isAdding}
+      />
     </Layout>
   );
 };

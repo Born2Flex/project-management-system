@@ -13,7 +13,7 @@ export const authApi = {
       name: userData.name,
       email: userData.email,
       password: userData.password,
-      role: userData.role || 'USER',
+      role: userData.role || 'DEVELOPER',
     });
     return response.data;
   },

@@ -49,7 +49,7 @@ export const useUser = (id: number) => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: [QUERY_KEYS.USER, id],
+    queryKey: [QUERY_KEYS.DEVELOPER, id],
     queryFn: () => usersApi.getById(id),
     enabled: !!id,
   });

@@ -26,7 +26,7 @@ export const useAuth = () => {
         username: '',
         name: '',
         email: credentials.email,
-        role: UserRole.USER,
+        role: UserRole.DEVELOPER,
       });
       
       const user = await usersApi.getById(loginResponse.userId);
@@ -49,7 +49,7 @@ export const useAuth = () => {
 
   const registerMutation = useMutation({
     mutationFn: (userData: RegisterRequest) => {
-      console.log('Attempting registration for:', userData.email);
+      console.log('Attempting registration for:', userData.email, 'with role:', userData.role);
       return authApi.register(userData);
     },
     onSuccess: (data, variables) => {
@@ -61,6 +61,7 @@ export const useAuth = () => {
       });
     },
     onError: (error: ApiError) => {
+      console.error('Registration error:', error);
       console.error('Error details:', {
         message: error?.message,
         response: error?.response?.data,
@@ -78,7 +79,7 @@ export const useAuth = () => {
         username: '',
         name: '',
         email: '',
-        role: UserRole.USER,
+        role: UserRole.DEVELOPER,
       });
       
       const user = await usersApi.getById(refreshResponse.userId);

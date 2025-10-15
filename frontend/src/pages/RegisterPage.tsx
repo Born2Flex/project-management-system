@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/types/auth.types';
 import { ROUTES } from '@/utils/constants';
 import { isValidEmail, isValidPassword, isValidUsername, isRequired } from '@/utils/validation';
 import Button from '@/components/common/Button';
@@ -19,6 +20,7 @@ export const RegisterPage: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    role: UserRole.DEVELOPER,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -131,6 +133,24 @@ export const RegisterPage: React.FC = () => {
             error={errors.confirmPassword}
             fullWidth
           />
+
+          <div>
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+              Role <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="role"
+              value={formData.role}
+              onChange={(e) => handleChange('role', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value={UserRole.DEVELOPER}>Developer</option>
+              <option value={UserRole.PROJECT_MANAGER}>Project Manager</option>
+            </select>
+            <p className="mt-1 text-sm text-gray-500">
+              Choose your role in the project management system
+            </p>
+          </div>
 
           {registerError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">

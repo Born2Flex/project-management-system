@@ -1,13 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useProjects } from '@/hooks/useProjects';
+import { useCurrentUser } from '@/hooks/useAuth';
+import { UserRole } from '@/types/auth.types';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
+import CreateProjectModal from '@/components/features/CreateProjectModal';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
   const { projects, isLoading, error } = useProjects();
+  const { user } = useCurrentUser();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  const isPM = user?.role === UserRole.PROJECT_MANAGER;
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/projects/${projectId}`);
@@ -41,9 +48,11 @@ export const ProjectsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-          <Button>
-            Create Project
-          </Button>
+          {isPM && (
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              Create Project
+            </Button>
+          )}
         </div>
 
         {projects.length === 0 ? (
@@ -54,9 +63,11 @@ export const ProjectsPage: React.FC = () => {
               </svg>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No projects yet</h3>
               <p className="text-gray-600 mb-6">Get started by creating your first project</p>
-              <Button>
-                Create Your First Project
-              </Button>
+              {isPM && (
+                <Button onClick={() => setIsCreateModalOpen(true)}>
+                  Create Your First Project
+                </Button>
+              )}
             </div>
           </Card>
         ) : (
@@ -85,6 +96,11 @@ export const ProjectsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </Layout>
   );
 };
