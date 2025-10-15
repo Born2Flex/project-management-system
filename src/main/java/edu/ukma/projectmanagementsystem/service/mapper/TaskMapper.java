@@ -8,7 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = ComponentModel.SPRING)
+@Mapper(componentModel = ComponentModel.SPRING, uses = TaskCommentMapper.class)
 public interface TaskMapper {
     TaskDto toDto(TaskEntity entity);
     TaskEntity toEntity(TaskCreateDto createDto);
