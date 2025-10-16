@@ -1,4 +1,4 @@
-package edu.ukma.projectmanagementsystem.service.dto;
+package edu.ukma.projectmanagementsystem.service.dto.request;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

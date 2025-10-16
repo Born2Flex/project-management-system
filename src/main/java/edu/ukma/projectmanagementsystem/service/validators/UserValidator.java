@@ -17,8 +17,8 @@ public class UserValidator {
         userRepository.findByEmail(email).filter(user -> !user.getId().equals(id)).ifPresent(this::throwEmailDuplicateException);
     }
 
-    public void validateForDuplicateUsername(Long id, String email) {
-        userRepository.findByUsername(email).filter(user -> !user.getId().equals(id)).ifPresent(this::throwUsernameDuplicateException);
+    public void validateForDuplicateUsername(Long id, String username) {
+        userRepository.findByUsername(username).filter(user -> !user.getId().equals(id)).ifPresent(this::throwUsernameDuplicateException);
     }
 
     private void throwEmailDuplicateException(UserEntity user) {

@@ -44,7 +44,7 @@ class UserServiceImpl implements UserService {
     public UserDto updateUser(Long id, UserUpdateDto updateDto) {
         log.info("Attempting to update user with ID: {}", id);
         userValidator.validateForDuplicateEmail(id, updateDto.getEmail());
-        userValidator.validateForDuplicateUsername(id, updateDto.getEmail());
+        userValidator.validateForDuplicateUsername(id, updateDto.getUsername());
         UserEntity userEntity = getUserByIdOrElseThrow(id);
         UserEntity updatedEntity = mapper.updateEntity(userEntity, updateDto);
         UserDto updatedUser = mapper.toDto(updatedEntity);

@@ -25,10 +25,4 @@ public class TaskDto {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
-//    TODO projectId, assigneeId???
-//    maybe we should also add some project info
-//    we definitely should add some info about the user which is handing the task
-//    (in case if it's present)
-
 }

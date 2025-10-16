@@ -11,5 +11,5 @@ public class ProjectCreateDto {
 
     String description;
 
-    ProjectStatus status; // TODO Maybe we should initialize it with default value or remove these field
+    ProjectStatus status;
 }
