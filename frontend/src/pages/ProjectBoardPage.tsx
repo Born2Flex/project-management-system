@@ -1,12 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { useProject, useDevelopers } from '@/hooks/useProjects';
+import { useProject, useDevelopers, useProjects } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
 import { useCurrentUser } from '@/hooks/useAuth';
 import { UserRole } from '@/types/auth.types';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
+import DeleteConfirmationModal from '@/components/common/DeleteConfirmationModal';
 import CreateTaskModal from '@/components/features/CreateTaskModal';
 import AssignUserModal from '@/components/features/AssignUserModal';
 import { getStatusDisplayName } from '@/utils/taskHelpers';
@@ -117,12 +118,14 @@ export const ProjectBoardPage: React.FC = () => {
   const { project, isLoading: isLoadingProject } = useProject(projectId);
   const { tasks, isLoading: isLoadingTasks, updateTaskMutation } = useTasks(projectId);
   const { developers, addDeveloper, removeDeveloper, isAdding, isRemoving } = useDevelopers(projectId);
+  const { deleteProject, isDeleting: isDeletingProject } = useProjects();
   const { user } = useCurrentUser();
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [isAssignUserModalOpen, setIsAssignUserModalOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [optimisticTasks, setOptimisticTasks] = useState<Task[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const lastUpdateRef = useRef<number>(0);
 
   const sensors = useSensors(
@@ -156,6 +159,15 @@ export const ProjectBoardPage: React.FC = () => {
       await removeDeveloper(developerId);
     } catch (error) {
       console.error('Failed to remove developer:', error);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    try {
+      await deleteProject(projectId);
+      navigate('/projects');
+    } catch (error) {
+      console.error('Failed to delete project:', error);
     }
   };
 
@@ -275,6 +287,16 @@ export const ProjectBoardPage: React.FC = () => {
                 <Button onClick={() => setIsCreateTaskModalOpen(true)}>
                   Create Task
                 </Button>
+                {isPM && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={isDeletingProject}
+                    className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500"
+                  >
+                    Delete Project
+                  </Button>
+                )}
               </div>
             </div>
             <p className="text-gray-600">{project.description}</p>
@@ -380,6 +402,16 @@ export const ProjectBoardPage: React.FC = () => {
           projectId={projectId}
           onAssign={handleAddDeveloper}
           isAssigning={isAdding}
+        />
+
+        <DeleteConfirmationModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteProject}
+          title="Delete Project"
+          message={`Are you sure you want to delete "${project?.name}"? This action cannot be undone and will delete all tasks and comments in this project.`}
+          confirmText="Delete Project"
+          isLoading={isDeletingProject}
         />
       </DndContext>
     </Layout>

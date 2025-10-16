@@ -6,18 +6,29 @@ import { UserRole } from '@/types/auth.types';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
+import DeleteConfirmationModal from '@/components/common/DeleteConfirmationModal';
 import CreateProjectModal from '@/components/features/CreateProjectModal';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { projects, isLoading, error } = useProjects();
+  const { projects, isLoading, error, deleteProject, isDeleting } = useProjects();
   const { user } = useCurrentUser();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
   
   const isPM = user?.role === UserRole.PROJECT_MANAGER;
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/projects/${projectId}`);
+  };
+
+  const handleDeleteProject = async (projectId: number) => {
+    try {
+      await deleteProject(projectId);
+      setProjectToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+    }
   };
 
   if (isLoading) {
@@ -80,15 +91,32 @@ export const ProjectsPage: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-xl font-semibold text-gray-900">{project.name}</h3>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      project.status === 'ACTIVE'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {project.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        project.status === 'ACTIVE'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {project.status}
+                    </span>
+                    {isPM && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setProjectToDelete(project.id);
+                        }}
+                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                        disabled={isDeleting}
+                        title="Delete project"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <p className="text-gray-600 text-sm line-clamp-2">{project.description}</p>
               </Card>
@@ -100,6 +128,16 @@ export const ProjectsPage: React.FC = () => {
       <CreateProjectModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={!!projectToDelete}
+        onClose={() => setProjectToDelete(null)}
+        onConfirm={() => projectToDelete && handleDeleteProject(projectToDelete)}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${projects.find(p => p.id === projectToDelete)?.name}"? This action cannot be undone and will delete all tasks and comments in this project.`}
+        confirmText="Delete Project"
+        isLoading={isDeleting}
       />
     </Layout>
   );

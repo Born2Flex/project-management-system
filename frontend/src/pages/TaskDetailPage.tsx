@@ -8,6 +8,7 @@ import { useDevelopers } from '@/hooks/useProjects';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
+import DeleteConfirmationModal from '@/components/common/DeleteConfirmationModal';
 import { formatDate, formatRelativeTime } from '@/utils/formatters';
 import { getStatusDisplayName } from '@/utils/taskHelpers';
 import { TaskStatus, TaskPriority, type AssignTaskRequest } from '@/types/task.types';
@@ -20,14 +21,16 @@ export const TaskDetailPage: React.FC = () => {
 
   const { task, isLoading: isLoadingTask } = useTask(projectId, taskId);
   const { project, isLoading: isLoadingProject } = useProject(projectId);
-  const { comments, isLoading: isLoadingComments, createComment, isCreating } = useComments(projectId, taskId);
-  const { updateTaskMutation, assignTask, unassignTask, isAssigning, isUnassigning } = useTasks(projectId);
+  const { comments, isLoading: isLoadingComments, createComment, deleteComment, isCreating, isDeleting: isDeletingComment } = useComments(projectId, taskId);
+  const { updateTaskMutation, assignTask, unassignTask, deleteTask, isAssigning, isUnassigning, isDeleting } = useTasks(projectId);
   const { developers, isLoading: isLoadingDevelopers } = useDevelopers(projectId);
 
   const [newComment, setNewComment] = useState('');
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [isEditingAssignee, setIsEditingAssignee] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
   const lastUpdateRef = useRef<number>(0);
 
   const handleAddComment = () => {
@@ -93,6 +96,24 @@ export const TaskDetailPage: React.FC = () => {
   const handleCancelAssignment = () => {
     setIsEditingAssignee(false);
     setSelectedUserId(null);
+  };
+
+  const handleDeleteTask = async () => {
+    try {
+      await deleteTask(taskId);
+      navigate(`/projects/${projectId}`);
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    try {
+      await deleteComment(commentId);
+      setCommentToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+    }
   };
 
   const getPriorityColor = (priority: TaskPriority) => {
@@ -166,9 +187,18 @@ export const TaskDetailPage: React.FC = () => {
               <div className="flex items-start justify-between mb-4">
                 <h1 className="text-3xl font-bold text-gray-900">{displayTask.title}</h1>
                 <div className="flex gap-2">
-                  <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getPriorityColor(displayTask.priority)}`}>
+                  <span className={`px-3 py-1 font-medium rounded-full border ${getPriorityColor(displayTask.priority)}`}>
                     {displayTask.priority}
                   </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={isDeleting}
+                    size="sm"
+                    className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500"
+                  >
+                    Delete Task
+                  </Button>
                 </div>
               </div>
 
@@ -227,14 +257,28 @@ export const TaskDetailPage: React.FC = () => {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-gray-900">{comment.author.name}</span>
-                            <span className="text-sm text-gray-500">
-                              {formatRelativeTime(comment.createdAt)}
-                            </span>
-                            {comment.updatedAt && (
-                              <span className="text-xs text-gray-400">(edited)</span>
-                            )}
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900">{comment.author.name}</span>
+                              <span className="text-sm text-gray-500">
+                                {formatRelativeTime(comment.createdAt)}
+                              </span>
+                              {comment.updatedAt && (
+                                <span className="text-xs text-gray-400">(edited)</span>
+                              )}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCommentToDelete(comment.id)}
+                              className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500 p-1 min-w-0"
+                              disabled={isDeletingComment}
+                              title="Delete comment"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </Button>
                           </div>
                           <p className="text-gray-700 whitespace-pre-wrap">{comment.text}</p>
                         </div>
@@ -418,6 +462,26 @@ export const TaskDetailPage: React.FC = () => {
             </Card>
           </div>
         </div>
+
+        <DeleteConfirmationModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteTask}
+          title="Delete Task"
+          message={`Are you sure you want to delete "${displayTask.title}"? This action cannot be undone and will delete all comments for this task.`}
+          confirmText="Delete Task"
+          isLoading={isDeleting}
+        />
+
+        <DeleteConfirmationModal
+          isOpen={!!commentToDelete}
+          onClose={() => setCommentToDelete(null)}
+          onConfirm={() => commentToDelete && handleDeleteComment(commentToDelete)}
+          title="Delete Comment"
+          message="Are you sure you want to delete this comment? This action cannot be undone."
+          confirmText="Delete Comment"
+          isLoading={isDeletingComment}
+        />
       </div>
     </Layout>
   );
