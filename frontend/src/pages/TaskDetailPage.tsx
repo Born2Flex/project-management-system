@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTask } from '@/hooks/useTasks';
 import { useComments } from '@/hooks/useComments';
@@ -9,7 +9,7 @@ import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { formatDate, formatRelativeTime } from '@/utils/formatters';
 import { getStatusDisplayName } from '@/utils/taskHelpers';
-import { TaskStatus, TaskPriority } from '@/types/task.types';
+import { TaskStatus, TaskPriority, type Task } from '@/types/task.types';
 
 export const TaskDetailPage: React.FC = () => {
   const { projectId: projectIdParam, id } = useParams<{ projectId: string; id: string }>();
@@ -20,10 +20,12 @@ export const TaskDetailPage: React.FC = () => {
   const { task, isLoading: isLoadingTask } = useTask(projectId, taskId);
   const { project, isLoading: isLoadingProject } = useProject(projectId);
   const { comments, isLoading: isLoadingComments, createComment, isCreating } = useComments(projectId, taskId);
-  const { updateTask } = useTasks(projectId);
+  const { updateTaskMutation } = useTasks(projectId);
 
   const [newComment, setNewComment] = useState('');
   const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [optimisticTask, setOptimisticTask] = useState<Task | null>(null);
+  const lastUpdateRef = useRef<number>(0);
 
   const handleAddComment = () => {
     if (newComment.trim()) {
@@ -33,10 +35,34 @@ export const TaskDetailPage: React.FC = () => {
   };
 
   const handleStatusChange = (newStatus: TaskStatus) => {
-    if (task) {
-      updateTask({ taskId: task.id, data: { status: newStatus } });
+    if (!task || task.status === newStatus || updateTaskMutation.isPending) {
       setIsEditingStatus(false);
+      return;
     }
+
+    const now = Date.now();
+    if (now - lastUpdateRef.current < 1000) {
+      setIsEditingStatus(false);
+      return;
+    }
+    lastUpdateRef.current = now;
+
+    const optimisticTaskUpdate = { ...task, status: newStatus };
+    
+    setOptimisticTask(optimisticTaskUpdate);
+    setIsEditingStatus(false);
+    
+    updateTaskMutation.mutate(
+      { taskId: task.id, data: { status: newStatus } },
+      {
+        onSuccess: () => {
+          setOptimisticTask(null);
+        },
+        onError: () => {
+          setOptimisticTask(null);
+        }
+      }
+    );
   };
 
   const getPriorityColor = (priority: TaskPriority) => {
@@ -78,7 +104,9 @@ export const TaskDetailPage: React.FC = () => {
     );
   }
 
-  if (!task) {
+  const displayTask = optimisticTask || task;
+
+  if (!displayTask) {
     return (
       <Layout>
         <div className="text-center py-12">
@@ -106,10 +134,10 @@ export const TaskDetailPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <div className="flex items-start justify-between mb-4">
-                <h1 className="text-3xl font-bold text-gray-900">{task.title}</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{displayTask.title}</h1>
                 <div className="flex gap-2">
-                  <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getPriorityColor(task.priority)}`}>
-                    {task.priority}
+                  <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getPriorityColor(displayTask.priority)}`}>
+                    {displayTask.priority}
                   </span>
                 </div>
               </div>
@@ -123,7 +151,7 @@ export const TaskDetailPage: React.FC = () => {
 
               <div className="mb-6">
                 <h2 className="text-sm font-semibold text-gray-700 mb-2">Description</h2>
-                <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+                <p className="text-gray-700 whitespace-pre-wrap">{displayTask.description}</p>
               </div>
             </Card>
 
@@ -198,7 +226,7 @@ export const TaskDetailPage: React.FC = () => {
                       key={status}
                       onClick={() => handleStatusChange(status)}
                       className={`w-full px-3 py-2 text-sm font-medium rounded-lg border text-left transition-colors ${
-                        task.status === status
+                        displayTask.status === status
                           ? getStatusColor(status)
                           : 'bg-white hover:bg-gray-50 border-gray-300'
                       }`}
@@ -216,9 +244,9 @@ export const TaskDetailPage: React.FC = () => {
               ) : (
                 <button
                   onClick={() => setIsEditingStatus(true)}
-                  className={`w-full px-3 py-2 text-sm font-medium rounded-lg border ${getStatusColor(task.status)} hover:opacity-80 transition-opacity`}
+                  className={`w-full px-3 py-2 text-sm font-medium rounded-lg border ${getStatusColor(displayTask.status)} hover:opacity-80 transition-opacity`}
                 >
-                  {getStatusDisplayName(task.status)}
+                  {getStatusDisplayName(displayTask.status)}
                 </button>
               )}
             </Card>
@@ -228,14 +256,14 @@ export const TaskDetailPage: React.FC = () => {
               <div className="space-y-3">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Assignee</p>
-                  {task.assignee ? (
+                  {displayTask.assignee ? (
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
-                        {task.assignee.name.charAt(0).toUpperCase()}
+                        {displayTask.assignee.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{task.assignee.name}</p>
-                        <p className="text-xs text-gray-500">{task.assignee.email}</p>
+                        <p className="text-sm font-medium text-gray-900">{displayTask.assignee.name}</p>
+                        <p className="text-xs text-gray-500">{displayTask.assignee.email}</p>
                       </div>
                     </div>
                   ) : (
@@ -245,29 +273,29 @@ export const TaskDetailPage: React.FC = () => {
 
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Created</p>
-                  <p className="text-sm text-gray-900">{formatDate(task.createdAt)}</p>
-                  <p className="text-xs text-gray-500">{formatRelativeTime(task.createdAt)}</p>
+                  <p className="text-sm text-gray-900">{formatDate(displayTask.createdAt)}</p>
+                  <p className="text-xs text-gray-500">{formatRelativeTime(displayTask.createdAt)}</p>
                 </div>
 
-                {task.dueDateTime && (
+                {displayTask.dueDateTime && (
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Due Date</p>
-                    <p className="text-sm text-gray-900">{formatDate(task.dueDateTime)}</p>
-                    <p className="text-xs text-gray-500">{formatRelativeTime(task.dueDateTime)}</p>
+                    <p className="text-sm text-gray-900">{formatDate(displayTask.dueDateTime)}</p>
+                    <p className="text-xs text-gray-500">{formatRelativeTime(displayTask.dueDateTime)}</p>
                   </div>
                 )}
 
-                {task.updatedAt && (
+                {displayTask.updatedAt && (
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Last Updated</p>
-                    <p className="text-sm text-gray-900">{formatDate(task.updatedAt)}</p>
+                    <p className="text-sm text-gray-900">{formatDate(displayTask.updatedAt)}</p>
                   </div>
                 )}
 
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Priority</p>
-                  <span className={`inline-block px-2 py-1 text-xs font-medium rounded border ${getPriorityColor(task.priority)}`}>
-                    {task.priority}
+                  <span className={`inline-block px-2 py-1 text-xs font-medium rounded border ${getPriorityColor(displayTask.priority)}`}>
+                    {displayTask.priority}
                   </span>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tasksApi } from '@/api/tasks.api';
-import { type CreateTaskRequest, type UpdateTaskRequest, type AssignTaskRequest } from '@/types/task.types';
+import { type CreateTaskRequest, type UpdateTaskRequest, type AssignTaskRequest, type Task } from '@/types/task.types';
 import { QUERY_KEYS } from '@/utils/constants';
 
 export const useTasks = (projectId: number) => {
@@ -28,8 +28,13 @@ export const useTasks = (projectId: number) => {
     mutationFn: ({ taskId, data }: { taskId: number; data: UpdateTaskRequest }) =>
       tasksApi.update(projectId, taskId, data),
     onSuccess: (updatedTask) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, projectId] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASK, projectId, updatedTask.id] });
+      queryClient.setQueryData([QUERY_KEYS.TASKS, projectId], (oldTasks: Task[] | undefined) => {
+        if (!oldTasks) return oldTasks;
+        return oldTasks.map(task => 
+          task.id === updatedTask.id ? { ...task, ...updatedTask } : task
+        );
+      });
+      queryClient.setQueryData([QUERY_KEYS.TASK, projectId, updatedTask.id], updatedTask);
     },
   });
 
@@ -62,6 +67,7 @@ export const useTasks = (projectId: number) => {
     refetch,
     createTask: createMutation.mutate,
     updateTask: updateMutation.mutate,
+    updateTaskMutation: updateMutation,
     deleteTask: deleteMutation.mutate,
     assignTask: assignMutation.mutate,
     unassignTask: unassignMutation.mutate,
