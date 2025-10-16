@@ -10,6 +10,7 @@ import edu.ukma.projectmanagementsystem.service.dto.project.ProjectDto;
 import edu.ukma.projectmanagementsystem.service.dto.project.ProjectUpdateDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskCreateDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskDto;
+import edu.ukma.projectmanagementsystem.service.dto.task.TaskFullDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskUpdateDto;
 import edu.ukma.projectmanagementsystem.service.dto.taskComment.TaskCommentCreateDto;
 import edu.ukma.projectmanagementsystem.service.dto.taskComment.TaskCommentDto;
@@ -116,7 +117,7 @@ public class ProjectController {
     @Operation(summary = "Get a specific task within a project by its ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = TaskDto.class)))
     @ApiResponse(responseCode = "404", description = "Project or Task not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    public TaskDto getTaskById(@PathVariable Long projectId, @PathVariable Long taskId) {
+    public TaskFullDto getTaskById(@PathVariable Long projectId, @PathVariable Long taskId) {
         return taskService.findTaskById(projectId, taskId);
     }
 

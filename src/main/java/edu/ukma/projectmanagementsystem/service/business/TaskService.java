@@ -2,6 +2,7 @@ package edu.ukma.projectmanagementsystem.service.business;
 
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskCreateDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskDto;
+import edu.ukma.projectmanagementsystem.service.dto.task.TaskFullDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskUpdateDto;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public interface TaskService {
 
     List<TaskDto> findTasksByProjectId(Long projectId);
 
-    TaskDto findTaskById(Long projectId, Long taskId);
+    TaskFullDto findTaskById(Long projectId, Long taskId);
 
     TaskDto updateTask(Long projectId, Long taskId, TaskUpdateDto updateDto);
 

@@ -8,6 +8,7 @@ import edu.ukma.projectmanagementsystem.domain.repository.TaskRepository;
 import edu.ukma.projectmanagementsystem.domain.repository.UserRepository;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskCreateDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskDto;
+import edu.ukma.projectmanagementsystem.service.dto.task.TaskFullDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskUpdateDto;
 import edu.ukma.projectmanagementsystem.service.mapper.TaskMapper;
 import edu.ukma.projectmanagementsystem.web.exception.NoSuchEntityException;
@@ -52,14 +53,14 @@ class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskDto findTaskById(Long projectId, Long taskId) {
+    public TaskFullDto findTaskById(Long projectId, Long taskId) {
         log.info("Fetching task with ID: {}", taskId);
         validateProjectExists(projectId);
         TaskEntity taskEntity = findTaskByIdOrElseThrow(taskId);
         if (!taskEntity.getProject().getId().equals(projectId)) {
             throw new NoSuchEntityException("Task not found in project with ID: " + projectId);
         }
-        return taskMapper.toDto(taskEntity);
+        return taskMapper.toFullDto(taskEntity);
     }
 
     @Override
