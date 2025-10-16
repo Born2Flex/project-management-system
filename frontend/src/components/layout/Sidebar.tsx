@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router';
 import { useUiStore } from '@/stores/uiStore';
 import { ROUTES } from '@/utils/constants';
+import {AnimatePresence, motion} from "framer-motion";
 
 const navItems = [
   {
@@ -18,34 +19,71 @@ const navItems = [
 export const Sidebar: React.FC = () => {
   const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
 
-  if (!isSidebarOpen) return null;
+  const framerSidebar = {
+    open: { width: '256px' },
+    closed: { width: '0px' },
+  };
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
+      <motion.aside
+        initial="closed"
+        animate={isSidebarOpen ? "open" : "closed"}
+        variants={framerSidebar}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+        className="w-64 bg-white border-r border-gray-200 min-h-screen">
       <nav className="p-4">
-        <ul className="space-y-2">
-          {navItems.map((item) => (
-            <li key={item.path}>
-              <NavLink
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`
-                }
-              >
-                {item.icon}
-                <span>{item.name}</span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+          <AnimatePresence mode="sync">
+            <motion.ul className="space-y-2">
+              {navItems.map((item) => (
+                  <motion.li
+                    layout
+                    key={item.path}>
+                      {isSidebarOpen &&  <motion.div
+                          layout
+                          initial={{ y: -24, opacity: 0 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ y: -24, opacity: 0 }}
+                          transition={{ type: "spring", delay: 0.2 }}>
+                          <NavLink
+                            to={item.path}
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                                isActive
+                                  ? 'bg-blue-50 text-blue-600 font-medium'
+                                  : 'text-gray-700 hover:bg-gray-100'
+                              }`
+                            }
+                          >
+                            {item.icon}
+                            <span>{item.name}</span>
+                          </NavLink>
+                      </motion.div>}
+                      {!isSidebarOpen &&  <motion.div
+                          layout
+                          initial={{ y: 0, opacity: 1 }}
+                          animate={{ opacity: 0, y: -24 }}
+                          transition={{ type: "spring", delay: 0.1 }}>
+                          <NavLink
+                              to={item.path}
+                              className={({ isActive }) =>
+                                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                                      isActive
+                                          ? 'bg-blue-50 text-blue-600 font-medium'
+                                          : 'text-gray-700 hover:bg-gray-100'
+                                  }`
+                              }
+                          >
+                              {item.icon}
+                          </NavLink>
+                      </motion.div>}
+                  </motion.li>
+              ))}
+            </motion.ul>
+          </AnimatePresence>
       </nav>
-    </aside>
+    </motion.aside>
+
   );
 };
 
 export default Sidebar;
-
