@@ -29,7 +29,7 @@ class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
 
     @Override
-    public TaskDto createTaskForProject(Long projectId, TaskCreateDto createDto) {
+    public TaskFullDto createTaskForProject(Long projectId, TaskCreateDto createDto) {
         log.info("Attempting to create task for project ID: {}", projectId);
         TaskEntity taskEntity = taskMapper.toEntity(createDto);
         ProjectEntity project = findProjectByIdOrElseThrow(projectId);
@@ -39,7 +39,7 @@ class TaskServiceImpl implements TaskService {
         taskEntity.setUpdatedAt(now);
         TaskEntity savedTask = taskRepository.save(taskEntity);
         log.info("Successfully created task with ID: {} for project ID: {}", savedTask.getId(), projectId);
-        return taskMapper.toDto(savedTask);
+        return taskMapper.toFullDto(savedTask);
     }
 
     @Override
@@ -64,7 +64,7 @@ class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskDto updateTask(Long projectId, Long taskId, TaskUpdateDto updateDto) {
+    public TaskFullDto updateTask(Long projectId, Long taskId, TaskUpdateDto updateDto) {
         log.info("Attempting to update task with ID: {}", taskId);
         validateProjectExists(projectId);
         TaskEntity existingTask = findTaskByIdOrElseThrow(taskId);
@@ -72,7 +72,7 @@ class TaskServiceImpl implements TaskService {
         existingTask.setUpdatedAt(LocalDateTime.now());
         TaskEntity updatedTask = taskRepository.save(existingTask);
         log.info("Successfully updated task with ID: {}", taskId);
-        return taskMapper.toDto(updatedTask);
+        return taskMapper.toFullDto(updatedTask);
     }
 
     @Override
@@ -84,7 +84,7 @@ class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskDto assignTaskToUser(Long taskId, Long userId) {
+    public TaskFullDto assignTaskToUser(Long taskId, Long userId) {
         log.info("Attempting to assign task {} to user {}", taskId, userId);
         TaskEntity task = findTaskEntityById(taskId);
         UserEntity user = findUserEntityById(userId);
@@ -97,18 +97,18 @@ class TaskServiceImpl implements TaskService {
         task.setUpdatedAt(LocalDateTime.now());
         TaskEntity updatedTask = taskRepository.save(task);
         log.info("Successfully assigned task {} to user {}", taskId, userId);
-        return taskMapper.toDto(updatedTask);
+        return taskMapper.toFullDto(updatedTask);
     }
 
     @Override
-    public TaskDto unassignTaskFromUser(Long taskId) {
+    public TaskFullDto unassignTaskFromUser(Long taskId) {
         log.info("Attempting to unassign user from task {}", taskId);
         TaskEntity task = findTaskEntityById(taskId);
         task.setAssignee(null);
         task.setUpdatedAt(LocalDateTime.now());
         TaskEntity updatedTask = taskRepository.save(task);
         log.info("Successfully unassigned user from task {}", taskId);
-        return taskMapper.toDto(updatedTask);
+        return taskMapper.toFullDto(updatedTask);
     }
 
     private TaskEntity findTaskEntityById(Long id) {

@@ -98,10 +98,10 @@ public class ProjectController {
 
     @PostMapping("/{projectId}/tasks")
     @Operation(summary = "Create a new task within a project")
-    @ApiResponse(responseCode = "201", description = "Task created successfully", content = @Content(schema = @Schema(implementation = TaskDto.class)))
+    @ApiResponse(responseCode = "201", description = "Task created successfully", content = @Content(schema = @Schema(implementation = TaskFullDto.class)))
     @ApiResponse(responseCode = "404", description = "Project or Assignee not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskDto createTaskInProject(@PathVariable Long projectId, @RequestBody @Valid TaskCreateDto taskDto) {
+    public TaskFullDto createTaskInProject(@PathVariable Long projectId, @RequestBody @Valid TaskCreateDto taskDto) {
         return taskService.createTaskForProject(projectId, taskDto);
     }
 
@@ -125,7 +125,7 @@ public class ProjectController {
     @Operation(summary = "Update a specific task within a project")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = TaskDto.class)))
     @ApiResponse(responseCode = "404", description = "Project or Task not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    public TaskDto updateTaskInProject(@PathVariable Long projectId, @PathVariable Long taskId, @RequestBody @Valid TaskUpdateDto taskDto) {
+    public TaskFullDto updateTaskInProject(@PathVariable Long projectId, @PathVariable Long taskId, @RequestBody @Valid TaskUpdateDto taskDto) {
         return taskService.updateTask(projectId, taskId, taskDto);
     }
 
@@ -140,14 +140,14 @@ public class ProjectController {
 
     @PatchMapping("/{projectId}/tasks/{taskId}/assign")
     @Operation(summary = "Assign a task to a user")
-    public TaskDto assignTask(@PathVariable Long projectId, @PathVariable Long taskId, @RequestBody @Valid AssignTaskRequest request) {
+    public TaskFullDto assignTask(@PathVariable Long projectId, @PathVariable Long taskId, @RequestBody @Valid AssignTaskRequest request) {
         projectService.findProjectById(projectId);
         return taskService.assignTaskToUser(taskId, request.getAssigneeId());
     }
 
     @PatchMapping("/{projectId}/tasks/{taskId}/unassign")
     @Operation(summary = "Unassign a user from a task")
-    public TaskDto unassignTask(@PathVariable Long projectId, @PathVariable Long taskId) {
+    public TaskFullDto unassignTask(@PathVariable Long projectId, @PathVariable Long taskId) {
         projectService.findProjectById(projectId);
         return taskService.unassignTaskFromUser(taskId);
     }

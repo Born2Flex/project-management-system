@@ -8,17 +8,17 @@ import edu.ukma.projectmanagementsystem.service.dto.task.TaskUpdateDto;
 import java.util.List;
 
 public interface TaskService {
-    TaskDto createTaskForProject(Long projectId, TaskCreateDto createDto);
+    TaskFullDto createTaskForProject(Long projectId, TaskCreateDto createDto);
 
     List<TaskDto> findTasksByProjectId(Long projectId);
 
     TaskFullDto findTaskById(Long projectId, Long taskId);
 
-    TaskDto updateTask(Long projectId, Long taskId, TaskUpdateDto updateDto);
+    TaskFullDto updateTask(Long projectId, Long taskId, TaskUpdateDto updateDto);
 
     void deleteTask(Long projectId, Long taskId);
 
-    TaskDto assignTaskToUser(Long taskId, Long userId);
+    TaskFullDto assignTaskToUser(Long taskId, Long userId);
 
-    TaskDto unassignTaskFromUser(Long taskId);
+    TaskFullDto unassignTaskFromUser(Long taskId);
 }

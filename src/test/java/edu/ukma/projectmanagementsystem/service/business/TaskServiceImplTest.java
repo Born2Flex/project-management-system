@@ -10,6 +10,7 @@ import edu.ukma.projectmanagementsystem.domain.repository.TaskRepository;
 import edu.ukma.projectmanagementsystem.domain.repository.UserRepository;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskCreateDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskDto;
+import edu.ukma.projectmanagementsystem.service.dto.task.TaskFullDto;
 import edu.ukma.projectmanagementsystem.service.dto.task.TaskUpdateDto;
 import edu.ukma.projectmanagementsystem.service.mapper.TaskMapper;
 import edu.ukma.projectmanagementsystem.web.exception.NoSuchEntityException;
@@ -55,6 +56,7 @@ class TaskServiceImplTest {
     private UserEntity userEntity;
     private TaskEntity taskEntity;
     private TaskDto taskDto;
+    private TaskFullDto taskFullDto;
     private TaskCreateDto taskCreateDto;
     private TaskUpdateDto taskUpdateDto;
 
@@ -87,6 +89,10 @@ class TaskServiceImplTest {
         taskDto = new TaskDto();
         taskDto.setId(taskId);
         taskDto.setTitle("New Task");
+
+        taskFullDto = new TaskFullDto();
+        taskFullDto.setId(taskId);
+        taskFullDto.setTitle("New Task");
     }
 
     @Nested
@@ -98,9 +104,9 @@ class TaskServiceImplTest {
             when(projectRepository.findById(projectId)).thenReturn(Optional.of(projectEntity));
             when(taskMapper.toEntity(any(TaskCreateDto.class))).thenReturn(taskEntity);
             when(taskRepository.save(any(TaskEntity.class))).thenReturn(taskEntity);
-            when(taskMapper.toDto(any(TaskEntity.class))).thenReturn(taskDto);
+            when(taskMapper.toFullDto(any(TaskEntity.class))).thenReturn(taskFullDto);
 
-            TaskDto result = taskService.createTaskForProject(projectId, taskCreateDto);
+            TaskFullDto result = taskService.createTaskForProject(projectId, taskCreateDto);
 
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(taskId);
@@ -163,9 +169,9 @@ class TaskServiceImplTest {
             when(projectRepository.existsById(projectId)).thenReturn(true);
             when(taskRepository.findById(taskId)).thenReturn(Optional.of(taskEntity));
             when(taskRepository.save(any(TaskEntity.class))).thenReturn(taskEntity);
-            when(taskMapper.toDto(any(TaskEntity.class))).thenReturn(taskDto);
+            when(taskMapper.toFullDto(any(TaskEntity.class))).thenReturn(taskFullDto);
 
-            TaskDto result = taskService.updateTask(projectId, taskId, taskUpdateDto);
+            TaskFullDto result = taskService.updateTask(projectId, taskId, taskUpdateDto);
 
             assertThat(result).isNotNull();
             verify(taskRepository, times(1)).save(taskEntity);
@@ -196,9 +202,9 @@ class TaskServiceImplTest {
             when(taskRepository.findById(taskId)).thenReturn(Optional.of(taskEntity));
             when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
             when(taskRepository.save(any(TaskEntity.class))).thenReturn(taskEntity);
-            when(taskMapper.toDto(any(TaskEntity.class))).thenReturn(taskDto);
+            when(taskMapper.toFullDto(any(TaskEntity.class))).thenReturn(taskFullDto);
 
-            TaskDto result = taskService.assignTaskToUser(taskId, userId);
+            TaskFullDto result = taskService.assignTaskToUser(taskId, userId);
 
             assertThat(result).isNotNull();
             verify(taskRepository, times(1)).save(taskEntity);
@@ -227,7 +233,7 @@ class TaskServiceImplTest {
             taskEntity.setAssignee(userEntity);
             when(taskRepository.findById(taskId)).thenReturn(Optional.of(taskEntity));
             when(taskRepository.save(any(TaskEntity.class))).thenReturn(taskEntity);
-            when(taskMapper.toDto(any(TaskEntity.class))).thenReturn(taskDto);
+            when(taskMapper.toFullDto(any(TaskEntity.class))).thenReturn(taskFullDto);
 
             taskService.unassignTaskFromUser(taskId);
 
