@@ -14,6 +14,7 @@ export const QUERY_KEYS = {
   USER: 'user',
   USERS: 'users',
   USER_BY_EMAIL: 'userByEmail',
+  DEVELOPER: 'developer',
   PROJECTS: 'projects',
   PROJECT: 'project',
   PROJECT_DEVELOPERS: 'projectDevelopers',

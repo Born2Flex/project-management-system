@@ -48,15 +48,27 @@ export const useTasks = (projectId: number) => {
   const assignMutation = useMutation({
     mutationFn: ({ taskId, request }: { taskId: number; request: AssignTaskRequest }) =>
       tasksApi.assign(projectId, taskId, request),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, projectId] });
+    onSuccess: (updatedTask) => {
+      queryClient.setQueryData([QUERY_KEYS.TASKS, projectId], (oldTasks: Task[] | undefined) => {
+        if (!oldTasks) return oldTasks;
+        return oldTasks.map(task => 
+          task.id === updatedTask.id ? { ...task, ...updatedTask } : task
+        );
+      });
+      queryClient.setQueryData([QUERY_KEYS.TASK, projectId, updatedTask.id], updatedTask);
     },
   });
 
   const unassignMutation = useMutation({
     mutationFn: (taskId: number) => tasksApi.unassign(projectId, taskId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, projectId] });
+    onSuccess: (updatedTask) => {
+      queryClient.setQueryData([QUERY_KEYS.TASKS, projectId], (oldTasks: Task[] | undefined) => {
+        if (!oldTasks) return oldTasks;
+        return oldTasks.map(task => 
+          task.id === updatedTask.id ? { ...task, ...updatedTask } : task
+        );
+      });
+      queryClient.setQueryData([QUERY_KEYS.TASK, projectId, updatedTask.id], updatedTask);
     },
   });
 

@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { useAuthStore } from '@/stores/authStore';
 import { authApi } from '@/api/auth.api';
@@ -16,6 +16,7 @@ interface ApiError extends Error {
 export const useAuth = () => {
   const navigate = useNavigate();
   const { setAuth, clearAuth, isAuthenticated } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginRequest) => {
@@ -94,10 +95,12 @@ export const useAuth = () => {
   const logoutMutation = useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
+      queryClient.clear();
       clearAuth();
       navigate(ROUTES.LOGIN);
     },
     onError: () => {
+      queryClient.clear();
       clearAuth();
       navigate(ROUTES.LOGIN);
     },

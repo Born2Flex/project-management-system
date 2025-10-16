@@ -55,6 +55,8 @@ const refreshToken = async (): Promise<string | null> => {
     ...authData,
     token: accessToken,
     refreshToken: newRefreshToken,
+    user: authData.user || authData.state?.user,
+    isAuthenticated: true,
   };
   
   if (authData.state) {
@@ -62,6 +64,8 @@ const refreshToken = async (): Promise<string | null> => {
       ...authData.state,
       token: accessToken,
       refreshToken: newRefreshToken,
+      user: authData.state.user,
+      isAuthenticated: true,
     };
   }
   

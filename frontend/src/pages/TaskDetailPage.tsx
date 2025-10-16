@@ -4,12 +4,13 @@ import { useTask } from '@/hooks/useTasks';
 import { useComments } from '@/hooks/useComments';
 import { useTasks } from '@/hooks/useTasks';
 import { useProject } from '@/hooks/useProjects';
+import { useDevelopers } from '@/hooks/useProjects';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { formatDate, formatRelativeTime } from '@/utils/formatters';
 import { getStatusDisplayName } from '@/utils/taskHelpers';
-import { TaskStatus, TaskPriority, type Task } from '@/types/task.types';
+import { TaskStatus, TaskPriority, type AssignTaskRequest } from '@/types/task.types';
 
 export const TaskDetailPage: React.FC = () => {
   const { projectId: projectIdParam, id } = useParams<{ projectId: string; id: string }>();
@@ -20,11 +21,13 @@ export const TaskDetailPage: React.FC = () => {
   const { task, isLoading: isLoadingTask } = useTask(projectId, taskId);
   const { project, isLoading: isLoadingProject } = useProject(projectId);
   const { comments, isLoading: isLoadingComments, createComment, isCreating } = useComments(projectId, taskId);
-  const { updateTaskMutation } = useTasks(projectId);
+  const { updateTaskMutation, assignTask, unassignTask, isAssigning, isUnassigning } = useTasks(projectId);
+  const { developers, isLoading: isLoadingDevelopers } = useDevelopers(projectId);
 
   const [newComment, setNewComment] = useState('');
   const [isEditingStatus, setIsEditingStatus] = useState(false);
-  const [optimisticTask, setOptimisticTask] = useState<Task | null>(null);
+  const [isEditingAssignee, setIsEditingAssignee] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const lastUpdateRef = useRef<number>(0);
 
   const handleAddComment = () => {
@@ -47,22 +50,49 @@ export const TaskDetailPage: React.FC = () => {
     }
     lastUpdateRef.current = now;
 
-    const optimisticTaskUpdate = { ...task, status: newStatus };
-    
-    setOptimisticTask(optimisticTaskUpdate);
     setIsEditingStatus(false);
     
-    updateTaskMutation.mutate(
-      { taskId: task.id, data: { status: newStatus } },
+    updateTaskMutation.mutate({ taskId: task.id, data: { status: newStatus } });
+  };
+
+  const handleAssignTask = (userId: number) => {
+    if (!task || isAssigning || isUnassigning) return;
+
+    const assignRequest: AssignTaskRequest = { assigneeId: userId };
+    
+    assignTask(
+      { taskId: task.id, request: assignRequest },
       {
         onSuccess: () => {
-          setOptimisticTask(null);
+          setIsEditingAssignee(false);
+          setSelectedUserId(null);
         },
         onError: () => {
-          setOptimisticTask(null);
+          setIsEditingAssignee(false);
+          setSelectedUserId(null);
         }
       }
     );
+  };
+
+  const handleUnassignTask = () => {
+    if (!task || isAssigning || isUnassigning) return;
+
+    unassignTask(task.id, {
+      onSuccess: () => {
+        setIsEditingAssignee(false);
+        setSelectedUserId(null);
+      },
+      onError: () => {
+        setIsEditingAssignee(false);
+        setSelectedUserId(null);
+      }
+    });
+  };
+
+  const handleCancelAssignment = () => {
+    setIsEditingAssignee(false);
+    setSelectedUserId(null);
   };
 
   const getPriorityColor = (priority: TaskPriority) => {
@@ -104,7 +134,7 @@ export const TaskDetailPage: React.FC = () => {
     );
   }
 
-  const displayTask = optimisticTask || task;
+  const displayTask = task;
 
   if (!displayTask) {
     return (
@@ -217,57 +247,143 @@ export const TaskDetailPage: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            <Card>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Status</h3>
-              {isEditingStatus ? (
-                <div className="space-y-2">
-                  {Object.values(TaskStatus).map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => handleStatusChange(status)}
-                      className={`w-full px-3 py-2 text-sm font-medium rounded-lg border text-left transition-colors ${
-                        displayTask.status === status
-                          ? getStatusColor(status)
-                          : 'bg-white hover:bg-gray-50 border-gray-300'
-                      }`}
-                    >
-                      {getStatusDisplayName(status)}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setIsEditingStatus(false)}
-                    className="w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsEditingStatus(true)}
-                  className={`w-full px-3 py-2 text-sm font-medium rounded-lg border ${getStatusColor(displayTask.status)} hover:opacity-80 transition-opacity`}
-                >
-                  {getStatusDisplayName(displayTask.status)}
-                </button>
-              )}
-            </Card>
+             <Card>
+               <h3 className="text-sm font-semibold text-gray-700 mb-3">Status</h3>
+               {updateTaskMutation.isPending ? (
+                 <div className="flex items-center justify-center py-3">
+                   <div className="flex items-center gap-2 text-sm text-gray-600">
+                     <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                     Updating status...
+                   </div>
+                 </div>
+               ) : isEditingStatus ? (
+                 <div className="space-y-2">
+                   {Object.values(TaskStatus).map((status) => (
+                     <button
+                       key={status}
+                       onClick={() => handleStatusChange(status)}
+                       disabled={updateTaskMutation.isPending}
+                       className={`w-full px-3 py-2 text-sm font-medium rounded-lg border text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                         displayTask.status === status
+                           ? getStatusColor(status)
+                           : 'bg-white hover:bg-gray-50 border-gray-300'
+                       }`}
+                     >
+                       {getStatusDisplayName(status)}
+                     </button>
+                   ))}
+                   <button
+                     onClick={() => setIsEditingStatus(false)}
+                     disabled={updateTaskMutation.isPending}
+                     className="w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     Cancel
+                   </button>
+                 </div>
+               ) : (
+                 <button
+                   onClick={() => setIsEditingStatus(true)}
+                   disabled={updateTaskMutation.isPending}
+                   className={`w-full px-3 py-2 text-sm font-medium rounded-lg border ${getStatusColor(displayTask.status)} hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed`}
+                 >
+                   {getStatusDisplayName(displayTask.status)}
+                 </button>
+               )}
+             </Card>
 
             <Card>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Details</h3>
               <div className="space-y-3">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Assignee</p>
-                  {displayTask.assignee ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
-                        {displayTask.assignee.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{displayTask.assignee.name}</p>
-                        <p className="text-xs text-gray-500">{displayTask.assignee.email}</p>
-                      </div>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs text-gray-500">Assignee</p>
+                    {!isEditingAssignee && (
+                      <button
+                        onClick={() => setIsEditingAssignee(true)}
+                        className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                      >
+                        {displayTask.assignee ? 'Change' : 'Assign'}
+                      </button>
+                    )}
+                  </div>
+                  
+                  {isEditingAssignee ? (
+                    <div className="space-y-3">
+                      {isLoadingDevelopers ? (
+                        <div className="text-center py-2">
+                          <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {developers.length === 0 ? (
+                            <p className="text-sm text-gray-500 py-2">No developers available for assignment</p>
+                          ) : (
+                            <select
+                              value={selectedUserId || ''}
+                              onChange={(e) => setSelectedUserId(e.target.value ? parseInt(e.target.value) : null)}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="">Select a developer...</option>
+                              {developers.map((developer) => (
+                                <option key={developer.id} value={developer.id}>
+                                  {developer.name} ({developer.email})
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                          
+                          <div className="flex gap-2">
+                            {selectedUserId && developers.length > 0 && (
+                              <Button
+                                onClick={() => handleAssignTask(selectedUserId)}
+                                size="sm"
+                                isLoading={isAssigning}
+                                disabled={isAssigning || isUnassigning}
+                              >
+                                Assign
+                              </Button>
+                            )}
+                            
+                            {displayTask.assignee && (
+                              <Button
+                                onClick={handleUnassignTask}
+                                size="sm"
+                                variant="secondary"
+                                isLoading={isUnassigning}
+                                disabled={isAssigning || isUnassigning}
+                              >
+                                Unassign
+                              </Button>
+                            )}
+                            
+                            <Button
+                              onClick={handleCancelAssignment}
+                              size="sm"
+                              variant="secondary"
+                              disabled={isAssigning || isUnassigning}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500">Unassigned</p>
+                    <>
+                      {displayTask.assignee ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                            {displayTask.assignee.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{displayTask.assignee.name}</p>
+                            <p className="text-xs text-gray-500">{displayTask.assignee.email}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">Unassigned</p>
+                      )}
+                    </>
                   )}
                 </div>
 
