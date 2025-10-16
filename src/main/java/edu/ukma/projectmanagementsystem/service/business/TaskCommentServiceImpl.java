@@ -61,7 +61,7 @@ class TaskCommentServiceImpl implements TaskCommentService {
         TaskCommentEntity existingEntity = taskCommentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchEntityException("Project not found with ID: " + id));
         TokenData tokenData = (TokenData) authenticationFacade.getAuthentication().getPrincipal();
-        if (existingEntity.getAuthor().getId().equals(tokenData.getId())) {
+        if (!existingEntity.getAuthor().getId().equals(tokenData.getId())) {
             throw new AccessDeniedException("You are not allowed to update this comment");
         }
         taskCommentMapper.updateEntity(existingEntity, updateDto);
