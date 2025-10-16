@@ -13,7 +13,7 @@ export const useProjects = () => {
     refetch,
   } = useQuery({
     queryKey: [QUERY_KEYS.PROJECTS],
-    queryFn: () => projectsApi.getAll(),
+    queryFn: () => projectsApi.getMy(),
   });
 
   const createMutation = useMutation({

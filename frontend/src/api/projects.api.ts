@@ -3,8 +3,8 @@ import { type Project, type CreateProjectRequest, type UpdateProjectRequest, typ
 import type { User } from '@/types/auth.types';
 
 export const projectsApi = {
-  getAll: async (): Promise<Project[]> => {
-    const response = await apiClient.get<Project[]>('/projects');
+  getMy: async (): Promise<Project[]> => {
+    const response = await apiClient.get<Project[]>('/projects/my');
     return response.data;
   },
 
