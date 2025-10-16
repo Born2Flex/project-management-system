@@ -2,7 +2,6 @@ package edu.ukma.projectmanagementsystem.domain.entity;
 
 import edu.ukma.projectmanagementsystem.domain.enumerated.TaskPriority;
 import edu.ukma.projectmanagementsystem.domain.enumerated.TaskStatus;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -56,11 +55,11 @@ public class TaskEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "project_id", nullable = false)
     private ProjectEntity project;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "assignee_id")
     private UserEntity assignee;
 }
