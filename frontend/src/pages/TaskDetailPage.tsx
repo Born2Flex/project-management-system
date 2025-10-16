@@ -9,6 +9,8 @@ import Layout from '@/components/layout/Layout';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import DeleteConfirmationModal from '@/components/common/DeleteConfirmationModal';
+import EditTaskModal from '@/components/features/EditTaskModal';
+import EditCommentInline from '@/components/features/EditCommentInline';
 import { formatDate, formatRelativeTime } from '@/utils/formatters';
 import { getStatusDisplayName } from '@/utils/taskHelpers';
 import { TaskStatus, TaskPriority, type AssignTaskRequest } from '@/types/task.types';
@@ -31,6 +33,8 @@ export const TaskDetailPage: React.FC = () => {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const lastUpdateRef = useRef<number>(0);
 
   const handleAddComment = () => {
@@ -116,6 +120,18 @@ export const TaskDetailPage: React.FC = () => {
     }
   };
 
+  const handleEditComment = (commentId: number) => {
+    setEditingCommentId(commentId);
+  };
+
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null);
+  };
+
+  const handleCommentEditSuccess = () => {
+    setEditingCommentId(null);
+  };
+
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
       case TaskPriority.CRITICAL:
@@ -191,6 +207,13 @@ export const TaskDetailPage: React.FC = () => {
                     {displayTask.priority}
                   </span>
                   <Button
+                    variant="secondary"
+                    onClick={() => setIsEditTaskModalOpen(true)}
+                    size="sm"
+                  >
+                    Edit Task
+                  </Button>
+                  <Button
                     variant="outline"
                     onClick={() => setShowDeleteConfirm(true)}
                     disabled={isDeleting}
@@ -250,39 +273,57 @@ export const TaskDetailPage: React.FC = () => {
                 <div className="space-y-4">
                   {comments.map((comment) => (
                     <div key={comment.id} className="border-b border-gray-200 pb-4 last:border-0">
-                      <div className="flex items-start gap-3">
-                        {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                          {comment.author.name.charAt(0).toUpperCase()}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-gray-900">{comment.author.name}</span>
-                              <span className="text-sm text-gray-500">
-                                {formatRelativeTime(comment.createdAt)}
-                              </span>
-                              {comment.updatedAt && (
-                                <span className="text-xs text-gray-400">(edited)</span>
-                              )}
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCommentToDelete(comment.id)}
-                              className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500 p-1 min-w-0"
-                              disabled={isDeletingComment}
-                              title="Delete comment"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </Button>
+                      {editingCommentId === comment.id ? (
+                        <EditCommentInline
+                          comment={comment}
+                          projectId={projectId}
+                          taskId={taskId}
+                          onCancel={handleCancelEditComment}
+                          onSuccess={handleCommentEditSuccess}
+                        />
+                      ) : (
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                            {comment.author.name.charAt(0).toUpperCase()}
                           </div>
-                          <p className="text-gray-700 whitespace-pre-wrap">{comment.text}</p>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-gray-900">{comment.author.name}</span>
+                                <span className="text-sm text-gray-500">
+                                  {formatRelativeTime(comment.createdAt)}
+                                </span>
+                                {comment.updatedAt && (
+                                  <span className="text-xs text-gray-400">(edited)</span>
+                                )}
+                              </div>
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => handleEditComment(comment.id)}
+                                  className="text-gray-400 hover:text-blue-500 transition-colors p-1"
+                                  title="Edit comment"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => setCommentToDelete(comment.id)}
+                                  className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                  disabled={isDeletingComment}
+                                  title="Delete comment"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-gray-700 whitespace-pre-wrap">{comment.text}</p>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -462,6 +503,15 @@ export const TaskDetailPage: React.FC = () => {
             </Card>
           </div>
         </div>
+
+        {displayTask && (
+          <EditTaskModal
+            isOpen={isEditTaskModalOpen}
+            onClose={() => setIsEditTaskModalOpen(false)}
+            projectId={projectId}
+            task={displayTask}
+          />
+        )}
 
         <DeleteConfirmationModal
           isOpen={showDeleteConfirm}

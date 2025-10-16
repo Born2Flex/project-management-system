@@ -9,6 +9,7 @@ import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import DeleteConfirmationModal from '@/components/common/DeleteConfirmationModal';
 import CreateTaskModal from '@/components/features/CreateTaskModal';
+import EditProjectModal from '@/components/features/EditProjectModal';
 import AssignUserModal from '@/components/features/AssignUserModal';
 import { getStatusDisplayName } from '@/utils/taskHelpers';
 import { TaskStatus, type Task } from '@/types/task.types';
@@ -121,6 +122,7 @@ export const ProjectBoardPage: React.FC = () => {
   const { deleteProject, isDeleting: isDeletingProject } = useProjects();
   const { user } = useCurrentUser();
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
   const [isAssignUserModalOpen, setIsAssignUserModalOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [optimisticTasks, setOptimisticTasks] = useState<Task[]>([]);
@@ -288,14 +290,22 @@ export const ProjectBoardPage: React.FC = () => {
                   Create Task
                 </Button>
                 {isPM && (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowDeleteConfirm(true)}
-                    disabled={isDeletingProject}
-                    className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500"
-                  >
-                    Delete Project
-                  </Button>
+                  <>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => setIsEditProjectModalOpen(true)}
+                    >
+                      Edit Project
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowDeleteConfirm(true)}
+                      disabled={isDeletingProject}
+                      className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500"
+                    >
+                      Delete Project
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
@@ -395,6 +405,14 @@ export const ProjectBoardPage: React.FC = () => {
           onClose={() => setIsCreateTaskModalOpen(false)}
           projectId={projectId}
         />
+
+        {project && (
+          <EditProjectModal
+            isOpen={isEditProjectModalOpen}
+            onClose={() => setIsEditProjectModalOpen(false)}
+            project={project}
+          />
+        )}
         
         <AssignUserModal
           isOpen={isAssignUserModalOpen}

@@ -8,6 +8,7 @@ import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import DeleteConfirmationModal from '@/components/common/DeleteConfirmationModal';
 import CreateProjectModal from '@/components/features/CreateProjectModal';
+import EditProjectModal from '@/components/features/EditProjectModal';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export const ProjectsPage: React.FC = () => {
   const { user } = useCurrentUser();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
+  const [projectToEdit, setProjectToEdit] = useState<number | null>(null);
   
   const isPM = user?.role === UserRole.PROJECT_MANAGER;
 
@@ -29,6 +31,10 @@ export const ProjectsPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to delete project:', error);
     }
+  };
+
+  const handleEditProject = (projectId: number) => {
+    setProjectToEdit(projectId);
   };
 
   if (isLoading) {
@@ -102,19 +108,33 @@ export const ProjectsPage: React.FC = () => {
                       {project.status}
                     </span>
                     {isPM && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setProjectToDelete(project.id);
-                        }}
-                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                        disabled={isDeleting}
-                        title="Delete project"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditProject(project.id);
+                          }}
+                          className="text-gray-400 hover:text-blue-500 transition-colors p-1"
+                          title="Edit project"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setProjectToDelete(project.id);
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                          disabled={isDeleting}
+                          title="Delete project"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -129,6 +149,14 @@ export const ProjectsPage: React.FC = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+
+      {projectToEdit && (
+        <EditProjectModal
+          isOpen={!!projectToEdit}
+          onClose={() => setProjectToEdit(null)}
+          project={projects.find(p => p.id === projectToEdit)!}
+        />
+      )}
 
       <DeleteConfirmationModal
         isOpen={!!projectToDelete}
