@@ -320,7 +320,7 @@ export const TaskDetailPage: React.FC = () => {
                                 </button>
                               </div>
                             </div>
-                            <p className="text-gray-700 whitespace-pre-wrap">{comment.text}</p>
+                            <p className="text-gray-700 whitespace-pre-wrap overflow-hidden text-ellipsis">{comment.text}</p>
                           </div>
                         </div>
                       )}
