@@ -46,7 +46,7 @@ const DraggableTask: React.FC<{ task: Task; onClick: (taskId: number) => void }>
           style={{ touchAction: 'none' }}
         >
           <h3 className="font-medium text-gray-900 mb-1 overflow-hidden text-ellipsis">{task.title}</h3>
-          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+          <p className="text-sm text-gray-600 line-clamp-2 mb-2 overflow-hidden text-ellipsis">
             {task.description}
           </p>
           <div className="flex items-center justify-between">
@@ -309,7 +309,7 @@ export const ProjectBoardPage: React.FC = () => {
                 )}
               </div>
             </div>
-            <p className="text-gray-600">{project.description}</p>
+            <p className="text-gray-600 overflow-hidden text-ellipsis">{project.description}</p>
             
             {developers.length > 0 && (
               <div className="mt-4 bg-gray-50 rounded-lg">
@@ -373,7 +373,7 @@ export const ProjectBoardPage: React.FC = () => {
           {activeTask ? (
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200 opacity-90">
               <h3 className="font-medium text-gray-900 mb-1 overflow-hidden text-ellipsis">{activeTask.title}</h3>
-              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+              <p className="text-sm text-gray-600 line-clamp-2 mb-2 overflow-hidden text-ellipsis">
                 {activeTask.description}
               </p>
               <div className="flex items-center justify-between">

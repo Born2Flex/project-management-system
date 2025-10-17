@@ -234,7 +234,7 @@ export const TaskDetailPage: React.FC = () => {
 
               <div className="mb-6">
                 <h2 className="text-sm font-semibold text-gray-700 mb-2">Description</h2>
-                <p className="text-gray-700 whitespace-pre-wrap">{displayTask.description}</p>
+                <p className="text-gray-700 whitespace-pre-wrap overflow-hidden text-ellipsis">{displayTask.description}</p>
               </div>
             </Card>
 
