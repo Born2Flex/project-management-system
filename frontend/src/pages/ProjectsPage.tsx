@@ -96,7 +96,7 @@ export const ProjectsPage: React.FC = () => {
                 onClick={() => handleProjectClick(project.id)}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-xl font-semibold text-gray-900">{project.name}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 overflow-hidden text-ellipsis">{project.name}</h3>
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
