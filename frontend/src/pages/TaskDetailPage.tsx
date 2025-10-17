@@ -211,7 +211,7 @@ export const TaskDetailPage: React.FC = () => {
                     onClick={() => setIsEditTaskModalOpen(true)}
                     size="sm"
                   >
-                    Edit Task
+                    Edit
                   </Button>
                   <Button
                     variant="outline"
@@ -220,7 +220,7 @@ export const TaskDetailPage: React.FC = () => {
                     size="sm"
                     className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500"
                   >
-                    Delete Task
+                    Delete
                   </Button>
                 </div>
               </div>
@@ -294,7 +294,7 @@ export const TaskDetailPage: React.FC = () => {
                                 <span className="text-sm text-gray-500">
                                   {formatRelativeTime(comment.createdAt)}
                                 </span>
-                                {comment.updatedAt && (
+                                {comment.updatedAt!=comment.createdAt && (
                                   <span className="text-xs text-gray-400">(edited)</span>
                                 )}
                               </div>
