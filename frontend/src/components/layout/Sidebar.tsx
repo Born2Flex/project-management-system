@@ -38,10 +38,10 @@ export const Sidebar: React.FC = () => {
                   <motion.li
                     layout
                     key={item.path}>
-                      {isSidebarOpen &&  <motion.div
+                      <motion.div
                           layout
-                          initial={{ y: -24, opacity: 0 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={false}
+                          animate={isSidebarOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: -24 }}
                           exit={{ y: -24, opacity: 0 }}
                           transition={{ type: "spring", delay: 0.2 }}>
                           <NavLink
@@ -55,34 +55,15 @@ export const Sidebar: React.FC = () => {
                             }
                           >
                             {item.icon}
-                            <span>{item.name}</span>
+                            {isSidebarOpen && <span>{item.name}</span>}
                           </NavLink>
-                      </motion.div>}
-                      {!isSidebarOpen &&  <motion.div
-                          layout
-                          initial={{ y: 0, opacity: 1 }}
-                          animate={{ opacity: 0, y: -24 }}
-                          transition={{ type: "spring", delay: 0.1 }}>
-                          <NavLink
-                              to={item.path}
-                              className={({ isActive }) =>
-                                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                                      isActive
-                                          ? 'bg-blue-50 text-blue-600 font-medium'
-                                          : 'text-gray-700 hover:bg-gray-100'
-                                  }`
-                              }
-                          >
-                              {item.icon}
-                          </NavLink>
-                      </motion.div>}
+                      </motion.div>
                   </motion.li>
               ))}
             </motion.ul>
           </AnimatePresence>
       </nav>
     </motion.aside>
-
   );
 };
 
