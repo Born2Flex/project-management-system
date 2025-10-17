@@ -138,7 +138,7 @@ export const ProjectsPage: React.FC = () => {
                     )}
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm line-clamp-2">{project.description}</p>
+                <p className="text-gray-600 text-sm line-clamp-2 overflow-hidden text-ellipsis">{project.description}</p>
               </Card>
             ))}
           </div>
