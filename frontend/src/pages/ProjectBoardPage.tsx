@@ -275,7 +275,7 @@ export const ProjectBoardPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 overflow-hidden text-ellipsis">{project.name}</h1>
               <div className="flex gap-3">
                 {isPM && (
                   <Button 
@@ -372,7 +372,7 @@ export const ProjectBoardPage: React.FC = () => {
         <DragOverlay>
           {activeTask ? (
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200 opacity-90">
-              <h3 className="font-medium text-gray-900 mb-1">{activeTask.title}</h3>
+              <h3 className="font-medium text-gray-900 mb-1 overflow-hidden text-ellipsis">{activeTask.title}</h3>
               <p className="text-sm text-gray-600 line-clamp-2 mb-2">
                 {activeTask.description}
               </p>
