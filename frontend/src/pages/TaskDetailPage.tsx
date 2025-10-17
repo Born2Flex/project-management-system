@@ -201,7 +201,7 @@ export const TaskDetailPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <div className="flex items-start justify-between mb-4">
-                <h1 className="text-3xl font-bold text-gray-900">{displayTask.title}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 overflow-hidden text-ellipsis">{displayTask.title}</h1>
                 <div className="flex gap-2">
                   <span className={`px-3 py-1 font-medium rounded-full border ${getPriorityColor(displayTask.priority)}`}>
                     {displayTask.priority}

@@ -45,7 +45,7 @@ const DraggableTask: React.FC<{ task: Task; onClick: (taskId: number) => void }>
           className="cursor-grab active:cursor-grabbing"
           style={{ touchAction: 'none' }}
         >
-          <h3 className="font-medium text-gray-900 mb-1">{task.title}</h3>
+          <h3 className="font-medium text-gray-900 mb-1 overflow-hidden text-ellipsis">{task.title}</h3>
           <p className="text-sm text-gray-600 line-clamp-2 mb-2">
             {task.description}
           </p>
