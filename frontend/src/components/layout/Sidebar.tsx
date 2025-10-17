@@ -55,7 +55,12 @@ export const Sidebar: React.FC = () => {
                             }
                           >
                             {item.icon}
-                            {isSidebarOpen && <span>{item.name}</span>}
+                            {isSidebarOpen && <motion.span
+                                initial={{opacity : 0}}
+                                animate={isSidebarOpen ? {opacity : 1} : {opacity : 0}}
+                                transition={{ delay: isSidebarOpen ? 0.25 :0, duration: 0.2 }}>
+                                {item.name}
+                            </motion.span>}
                           </NavLink>
                       </motion.div>
                   </motion.li>
