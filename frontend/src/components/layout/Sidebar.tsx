@@ -26,7 +26,7 @@ export const Sidebar: React.FC = () => {
 
   return (
       <motion.aside
-        initial="closed"
+        initial={false}
         animate={isSidebarOpen ? "open" : "closed"}
         variants={framerSidebar}
         transition={{ duration: 0.5, ease: "easeInOut" }}
