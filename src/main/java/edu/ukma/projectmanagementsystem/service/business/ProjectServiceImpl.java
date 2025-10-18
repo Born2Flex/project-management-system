@@ -12,6 +12,7 @@ import edu.ukma.projectmanagementsystem.service.dto.project.ProjectUpdateDto;
 import edu.ukma.projectmanagementsystem.service.dto.user.UserDto;
 import edu.ukma.projectmanagementsystem.service.mapper.ProjectMapper;
 import edu.ukma.projectmanagementsystem.service.mapper.UserMapper;
+import edu.ukma.projectmanagementsystem.service.validators.ProjectValidator;
 import edu.ukma.projectmanagementsystem.web.exception.NoSuchEntityException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +29,16 @@ class ProjectServiceImpl implements ProjectService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final AuthenticationFacade authenticationFacade;
+    private final ProjectValidator projectValidator;
 
     @Override
     public ProjectDto createProject(ProjectCreateDto createDto) {
         log.info("Attempting to create a new project with name: {}", createDto.getName());
-        ProjectEntity entity = projectMapper.toEntity(createDto);
         TokenData tokenData = (TokenData) authenticationFacade.getAuthentication().getPrincipal();
+
+        projectValidator.validateForDuplicateName(tokenData.getId(), createDto.getName());
+
+        ProjectEntity entity = projectMapper.toEntity(createDto);
         UserEntity currentUser = findUserEntityById(tokenData.getId());
         entity.getDevelopers().add(currentUser);
         ProjectEntity savedEntity = projectRepository.save(entity);
