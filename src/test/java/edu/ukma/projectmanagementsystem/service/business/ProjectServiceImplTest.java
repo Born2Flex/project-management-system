@@ -11,6 +11,7 @@ import edu.ukma.projectmanagementsystem.service.dto.project.ProjectCreateDto;
 import edu.ukma.projectmanagementsystem.service.dto.project.ProjectDto;
 import edu.ukma.projectmanagementsystem.service.dto.project.ProjectUpdateDto;
 import edu.ukma.projectmanagementsystem.service.mapper.ProjectMapper;
+import edu.ukma.projectmanagementsystem.service.validators.ProjectValidator;
 import edu.ukma.projectmanagementsystem.web.exception.NoSuchEntityException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +47,8 @@ class ProjectServiceImplTest {
     private ProjectMapper projectMapper;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private ProjectValidator projectValidator;
     @Mock
     private AuthenticationFacade authenticationFacade;
 
@@ -99,6 +102,7 @@ class ProjectServiceImplTest {
         void createProject_shouldSucceed() {
             when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
             when(projectMapper.toEntity(any(ProjectCreateDto.class))).thenReturn(projectEntity);
+            doNothing().when(projectValidator).validateForDuplicateName(anyLong(), anyString());
             when(projectRepository.save(any(ProjectEntity.class))).thenReturn(projectEntity);
             when(projectMapper.toDto(any(ProjectEntity.class))).thenReturn(projectDto);
 
